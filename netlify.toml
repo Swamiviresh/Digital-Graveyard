@@ -1,0 +1,13 @@
+[build]
+  command = "echo 'Static frontend - no build step required'"
+  publish = "."
+
+[[redirects]]
+  from = "/scan"
+  to = "/scan/"
+  status = 301
+
+[[redirects]]
+  from = "/report"
+  to = "/report/"
+  status = 301

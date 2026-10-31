@@ -1,0 +1,373 @@
+<!doctype html>
+<!DOCTYPE html>
+
+<html class="dark scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Digital Graveyard — AI Website Intelligence &amp; Threat Detection</title>
+<!-- Fonts: Space Grotesk, Inter, JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            background: "#09090F",
+            surface: "#09090F",
+            primary: "#c084fc",
+            "primary-container": "#9333ea",
+            secondary: "#fb923c",
+            "secondary-container": "#ea580c"
+          },
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+            display: ["Space Grotesk", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    body {
+      background-color: #09090F;
+      color: #e4e1ee;
+      overflow-x: hidden;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% {
+        opacity: 0.35;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.65;
+        transform: scale(1.08);
+      }
+    }
+
+    .animate-pulse-glow {
+      animation: pulse-glow 6s ease-in-out infinite;
+    }
+
+    .glass-nav {
+      background: rgba(9, 9, 15, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+  </style>
+<link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
+<link href="/src/custom.css" rel="stylesheet"/></head>
+<body class="bg-[#09090F] text-[#e4e1ee] font-sans antialiased min-h-screen selection:bg-purple-600 selection:text-white" data-page="landing">
+<!-- Ambient Background Glows -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+<div class="absolute -top-36 left-1/3 w-[45rem] h-[45rem] rounded-full bg-purple-900/20 blur-[150px] animate-pulse-glow"></div>
+<div class="absolute top-1/2 -right-36 w-[38rem] h-[38rem] rounded-full bg-orange-600/10 blur-[160px]"></div>
+<div class="absolute bottom-10 -left-20 w-[40rem] h-[40rem] rounded-full bg-purple-950/25 blur-[160px]"></div>
+</div>
+<!-- Minimal Transparent Navbar -->
+<header class="fixed top-0 left-0 right-0 z-50 glass-nav border-b border-white/5 transition-all">
+<div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+<!-- Brand Logo -->
+<a class="flex items-center gap-3 group" href="#">
+<div class="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-300 group-hover:scale-105 group-hover:border-purple-400/40 transition-all shadow-[0_0_15px_rgba(192,132,252,0.15)]">
+<span class="material-symbols-outlined text-2xl">ghost</span>
+</div>
+<span class="font-display font-bold tracking-widest text-sm uppercase text-white/90 group-hover:text-white transition-colors">
+        DIGITAL GRAVEYARD
+      </span>
+</a>
+<!-- Center Links -->
+<nav class="hidden md:flex items-center gap-8 text-sm font-medium text-white/60">
+<a class="text-white hover:text-white transition-colors" href="#">Home</a>
+<a class="hover:text-white transition-colors" href="#how-it-works">How It Works</a>
+<a class="hover:text-white transition-colors" href="#features">Features</a>
+</nav>
+<!-- Right CTAs & Indicator -->
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/10">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+</span>
+<span class="font-mono text-xs text-white/70 uppercase tracking-wider font-medium">AI POWERED</span>
+</div>
+<a class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-white text-[#09090F] hover:bg-white/90 font-medium text-xs tracking-wider uppercase transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-95" href="/scan">
+        Start Scanning
+      </a>
+</div>
+</div>
+</header>
+<main class="relative z-10 pt-24">
+<!-- ==================== HERO SECTION ==================== -->
+<section class="max-w-7xl mx-auto px-6 pt-16 pb-24 lg:pt-24 lg:pb-32">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+<!-- Left Column: Typography & CTAs -->
+<div class="lg:col-span-6 flex flex-col items-start gap-8 z-20">
+<!-- Eyebrow -->
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 font-mono text-xs font-medium tracking-widest uppercase">
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+          THE INTERNET IS FULL OF HIDDEN THREATS
+        </div>
+<!-- Headline -->
+<h1 class="font-display text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-[1.08]">
+          Not Every Website Deserves 
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-purple-300 to-fuchsia-400 drop-shadow-[0_0_25px_rgba(192,132,252,0.45)]">Your Trust.</span>
+</h1>
+<!-- Description -->
+<p class="text-lg text-white/60 leading-relaxed font-light max-w-xl">
+          The internet hides more than you think. Investigate websites, uncover suspicious signals and discover what's lurking beneath the surface with AI-powered security intelligence.
+        </p>
+<!-- CTAs -->
+<div class="w-full max-w-xl flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
+<a class="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full bg-white text-[#09090F] hover:bg-white/90 font-semibold text-xs tracking-widest uppercase transition-all shadow-[0_0_25px_rgba(255,255,255,0.25)] hover:shadow-[0_0_35px_rgba(192,132,252,0.4)] active:scale-95" href="/scan">
+<span>INVESTIGATE A WEBSITE</span>
+<span class="material-symbols-outlined text-base">arrow_forward</span>
+</a>
+<a class="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-purple-400/40 hover:bg-purple-500/10 text-white/80 hover:text-white text-xs font-mono uppercase tracking-wider transition-all" href="#how-it-works">
+<span>DISCOVER HOW IT WORKS</span>
+<span class="material-symbols-outlined text-sm">arrow_downward</span>
+</a>
+</div>
+<!-- Telemetry ticker -->
+<div class="pt-2 flex items-center gap-6 text-xs font-mono text-white/40">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald-400 text-sm">shield_check</span>
+            Real-time heuristic analysis
+          </span>
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-purple-400 text-sm">bolt</span>
+            3.2s scan turnaround
+          </span>
+</div>
+</div>
+<!-- Right Column: Genuine 3D Three.js Scene Component -->
+<div class="lg:col-span-6 relative flex items-center justify-center min-h-[480px] lg:min-h-[580px] w-full">
+<!-- Subtle Glow Halo behind 3D Canvas -->
+<div class="absolute w-80 h-80 rounded-full bg-purple-600/20 blur-[100px] pointer-events-none"></div>
+<div class="absolute -bottom-8 right-12 w-64 h-64 rounded-full bg-orange-500/15 blur-[90px] pointer-events-none"></div>
+<!-- Embedded Three.js Scene Component -->
+<!-- STITCH_THREEJS_START:ANIMATION_17 class="w-full h-[580px] bg-transparent relative z-10" -->
+<div class="w-full h-[580px] bg-transparent relative z-10" style="display:block;">
+
+<div id="threejs-container-ANIMATION_17" style="width:100%;height:100%"></div>
+
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_17 -->
+</div>
+</div>
+</section>
+<!-- ==================== THREE STEPS. ONE INVESTIGATION. ==================== -->
+<section class="max-w-7xl mx-auto px-6 py-28 border-t border-white/5" id="how-it-works">
+<div class="flex flex-col items-start gap-4 mb-20">
+<span class="text-xs font-mono uppercase tracking-[0.2em] text-purple-400">INVESTIGATION PROTOCOL</span>
+<h2 class="font-display text-3xl sm:text-5xl font-bold tracking-tight text-white">
+        Three Steps. One Investigation.
+      </h2>
+<p class="text-white/50 text-base max-w-xl font-light">
+        A seamless surgical pipeline exhuming hidden digital deceptions in seconds.
+      </p>
+</div>
+<!-- Connected Three Steps (Minimalist Lines, No Heavy Cards) -->
+<div class="relative grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
+<!-- Continuous horizontal connecting line -->
+<div class="hidden md:block absolute top-7 left-[15%] right-[15%] h-[1px] bg-gradient-to-r from-purple-500/30 via-purple-300/20 to-orange-500/30 pointer-events-none"></div>
+<!-- Step 01 -->
+<div class="flex flex-col items-start gap-4 relative">
+<div class="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-purple-300 relative z-10 shadow-[0_0_20px_rgba(192,132,252,0.1)]">
+<span class="material-symbols-outlined text-2xl">language</span>
+</div>
+<div class="pt-2 font-mono text-xs tracking-widest text-purple-400 font-semibold uppercase">
+          01 — ENTER WEBSITE URL
+        </div>
+<h3 class="font-display text-xl font-semibold text-white">
+          Provide the domain
+        </h3>
+<p class="text-sm text-white/50 leading-relaxed font-light">
+          Feed any web address into the scanner to initiate instant perimeter probes and global DNS checks.
+        </p>
+</div>
+<!-- Step 02 -->
+<div class="flex flex-col items-start gap-4 relative">
+<div class="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-purple-300 relative z-10 shadow-[0_0_20px_rgba(192,132,252,0.1)]">
+<span class="material-symbols-outlined text-2xl">radar</span>
+</div>
+<div class="pt-2 font-mono text-xs tracking-widest text-purple-400 font-semibold uppercase">
+          02 — SCAN WEBSITE
+        </div>
+<h3 class="font-display text-xl font-semibold text-white">
+          Deep forensic crawl
+        </h3>
+<p class="text-sm text-white/50 leading-relaxed font-light">
+          Our multi-vector analyzer cross-checks SSL certs, obscure redirects, script payloads, and server provenance.
+        </p>
+</div>
+<!-- Step 03 -->
+<div class="flex flex-col items-start gap-4 relative">
+<div class="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-orange-400 relative z-10 shadow-[0_0_20px_rgba(249,115,22,0.15)]">
+<span class="material-symbols-outlined text-2xl">visibility</span>
+</div>
+<div class="pt-2 font-mono text-xs tracking-widest text-orange-400 font-semibold uppercase">
+          03 — REVEAL THE RISK REPORT
+        </div>
+<h3 class="font-display text-xl font-semibold text-white">
+          Synthesized AI verdict
+        </h3>
+<p class="text-sm text-white/50 leading-relaxed font-light">
+          Receive clean, conclusive risk scores with actionable security breakdowns to stay completely protected.
+        </p>
+</div>
+</div>
+</section>
+<!-- ==================== FEATURES SECTION ==================== -->
+<section class="max-w-7xl mx-auto px-6 py-28 border-t border-white/5" id="features">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+<!-- Section Intro -->
+<div class="lg:col-span-5 flex flex-col items-start gap-5">
+<span class="text-xs font-mono uppercase tracking-[0.2em] text-purple-400">SURGICAL INTELLIGENCE</span>
+<h2 class="font-display text-3xl sm:text-5xl font-bold tracking-tight text-white leading-tight">
+          Look Beyond <br class="hidden sm:block"/>the Surface.
+        </h2>
+<p class="text-white/50 text-base leading-relaxed font-light max-w-md">
+          Malicious websites employ layers of deception, forged trust badges, and cloaked redirects. We dissect every dimension to uncover what lies beneath.
+        </p>
+<div class="pt-4">
+<a class="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-purple-300 hover:text-purple-200 transition-colors" href="/scan">
+<span>EXPLORE LIVE SCANNER</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Six Minimalist Feature Entries (Clean Typography, No Heavy Box Cards) -->
+<div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-12">
+<!-- Feature 1 -->
+<div class="flex flex-col items-start gap-2">
+<div class="flex items-center gap-2.5 text-purple-400">
+<span class="material-symbols-outlined text-xl">lock_open_right</span>
+<h3 class="font-display text-lg font-semibold text-white">SSL Analysis</h3>
+</div>
+<p class="text-sm text-white/50 leading-relaxed font-light">
+            Examine authority validity, chain of trust, issuer age, and detect forged cryptographic signatures.
+          </p>
+</div>
+<!-- Feature 2 -->
+<div class="flex flex-col items-start gap-2">
+<div class="flex items-center gap-2.5 text-purple-400">
+<span class="material-symbols-outlined text-xl">history_edu</span>
+<h3 class="font-display text-lg font-semibold text-white">Domain Intelligence</h3>
+</div>
+<p class="text-sm text-white/50 leading-relaxed font-light">
+            Audit registration history, newly registered domain anomalies, and spoofed registrar indicators.
+          </p>
+</div>
+<!-- Feature 3 -->
+<div class="flex flex-col items-start gap-2">
+<div class="flex items-center gap-2.5 text-purple-400">
+<span class="material-symbols-outlined text-xl">policy</span>
+<h3 class="font-display text-lg font-semibold text-white">Website Transparency</h3>
+</div>
+<p class="text-sm text-white/50 leading-relaxed font-light">
+            Evaluate real corporate attribution, verified contact endpoints, and presence of legally binding terms.
+          </p>
+</div>
+<!-- Feature 4 -->
+<div class="flex flex-col items-start gap-2">
+<div class="flex items-center gap-2.5 text-orange-400">
+<span class="material-symbols-outlined text-xl">crisis_alert</span>
+<h3 class="font-display text-lg font-semibold text-white">Reputation Analysis</h3>
+</div>
+<p class="text-sm text-white/50 leading-relaxed font-light">
+            Cross-reference federated cyber threat intelligence feeds, spam honeypots, and active blacklists.
+          </p>
+</div>
+<!-- Feature 5 -->
+<div class="flex flex-col items-start gap-2">
+<div class="flex items-center gap-2.5 text-purple-400">
+<span class="material-symbols-outlined text-xl">javascript</span>
+<h3 class="font-display text-lg font-semibold text-white">Suspicious Content Detection</h3>
+</div>
+<p class="text-sm text-white/50 leading-relaxed font-light">
+            Unpack obfuscated scripts, invisible form hijacks, and stealth redirection scripts embedded in page assets.
+          </p>
+</div>
+<!-- Feature 6 -->
+<div class="flex flex-col items-start gap-2">
+<div class="flex items-center gap-2.5 text-emerald-400">
+<span class="material-symbols-outlined text-xl">psychology</span>
+<h3 class="font-display text-lg font-semibold text-white">AI Risk Assessment</h3>
+</div>
+<p class="text-sm text-white/50 leading-relaxed font-light">
+            Deep language models aggregate forensic signals into actionable clarity, free of technical noise.
+          </p>
+</div>
+</div>
+</div>
+</section>
+<!-- ==================== CLOSING CTA SECTION ==================== -->
+<section class="max-w-7xl mx-auto px-6 py-28 border-t border-white/5 relative">
+<div class="relative rounded-3xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] p-12 sm:p-20 text-center flex flex-col items-center gap-8 overflow-hidden border border-white/5">
+<!-- Glow ambient background -->
+<div class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-purple-600/20 rounded-full blur-[130px] pointer-events-none"></div>
+<span class="text-xs font-mono uppercase tracking-[0.2em] text-orange-400 relative z-10">FINAL VERDICT</span>
+<h2 class="font-display text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.1] max-w-2xl relative z-10">
+        Ready to Enter the Graveyard?
+      </h2>
+<p class="text-base sm:text-lg text-white/60 leading-relaxed font-light max-w-xl relative z-10">
+        Every website has a story. Find out what's hiding behind the URL before you enter.
+      </p>
+<div class="pt-2 relative z-10">
+<a class="inline-flex items-center justify-center gap-3 px-9 py-4 rounded-full bg-white text-[#09090F] hover:bg-white/90 font-semibold text-xs tracking-widest uppercase transition-all shadow-[0_0_30px_rgba(255,255,255,0.25)] hover:shadow-[0_0_40px_rgba(192,132,252,0.4)] active:scale-95" href="/scan">
+<span class="material-symbols-outlined text-base">travel_explore</span>
+<span>SCAN A WEBSITE</span>
+<span class="material-symbols-outlined text-base">arrow_forward</span>
+</a>
+</div>
+</div>
+</section>
+</main>
+<!-- ==================== MINIMAL FOOTER ==================== -->
+<footer class="relative z-10 border-t border-white/5 py-16 bg-[#09090F]">
+<div class="max-w-7xl mx-auto px-6 flex flex-col gap-12">
+<!-- Top Row: Brand & Links -->
+<div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+<!-- Logo -->
+<a class="flex items-center gap-3 group" href="#">
+<div class="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-300">
+<span class="material-symbols-outlined text-xl">ghost</span>
+</div>
+<span class="font-display font-bold tracking-widest text-xs uppercase text-white/80">
+          DIGITAL GRAVEYARD
+        </span>
+</a>
+<!-- Links -->
+<nav class="flex flex-wrap items-center gap-8 text-xs font-mono text-white/50">
+<a class="hover:text-white transition-colors" href="#">Home</a>
+<a class="hover:text-white transition-colors" href="#how-it-works">How It Works</a>
+<a class="hover:text-white transition-colors" href="#features">Features</a>
+<a class="hover:text-white transition-colors" href="/scan">Scanner</a>
+<a class="hover:text-white transition-colors flex items-center gap-1" href="https://github.com" rel="noopener noreferrer" target="_blank">
+<span>GitHub</span>
+<span class="material-symbols-outlined text-xs">north_east</span>
+</a>
+</nav>
+</div>
+<!-- Bottom Row: Security Disclaimer & Copyright -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-6 border-t border-white/5 text-xs text-white/40">
+<p class="max-w-xl font-light">
+        A risk assessment is not a guarantee of website safety or maliciousness. For professional security intelligence.
+      </p>
+<p class="font-mono">
+        © 2026 DIGITAL GRAVEYARD. ALL RIGHTS RESERVED.
+      </p>
+</div>
+</div>
+</footer>
+<!-- Web Component Definition for Three.js Scene -->
+
+<script src="/src/app.js" type="module"></script><script src="/src/landing-scene.js" type="module"></script></body></html>

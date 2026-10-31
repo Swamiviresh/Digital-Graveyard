@@ -1,0 +1,54 @@
+:root {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+html, body { min-height: 100%; }
+body { overflow-x: hidden; }
+::selection { background: rgba(168, 85, 247, .35); color: #fff; }
+a, button { -webkit-tap-highlight-color: transparent; }
+a:focus-visible, button:focus-visible, input:focus-visible {
+  outline: 2px solid #c084fc;
+  outline-offset: 3px;
+}
+
+/* The exported Stitch 3D mount is a real WebGL canvas, not an image. */
+#threejs-container-ANIMATION_17 {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 430px;
+  overflow: hidden;
+}
+#threejs-container-ANIMATION_17 canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: pan-y;
+}
+
+.nav-active {
+  color: #e9d5ff !important;
+}
+
+@media (max-width: 1023px) {
+  #threejs-container-ANIMATION_17 { min-height: 390px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+@media print {
+  body { background: #fff !important; color: #111 !important; }
+  header, footer, #pdfExportBtn, #downloadPdfCta, #dossierToast,
+  a[href*="/scan"], #report-demo-notice { display: none !important; }
+  main, section, div { break-inside: avoid; }
+  .bg-surface, .bg-surface-container, .bg-surface-container-high,
+  .bg-\[\#10101a\] { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}

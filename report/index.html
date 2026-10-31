@@ -1,0 +1,683 @@
+<!doctype html>
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+  @layer base {
+    html, body { margin: 0; padding: 0; }
+    body { overscroll-behavior: none; }
+    main > :first-child { margin-top: 0 !important; }
+    main > :last-child { margin-bottom: 0 !important; }
+  }
+  ::-webkit-scrollbar { display: none; }
+
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 0.35; filter: blur(35px); }
+    50% { opacity: 0.65; filter: blur(50px); }
+  }
+  .animate-glow-pulse {
+    animation: pulseGlow 4s ease-in-out infinite;
+  }
+</style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "inverse-surface": "#e4e1ee", "surface": "#13131c", "surface-tint": "#ddb7ff", "error-container": "#93000a", "on-primary": "#490080", "surface-variant": "#34343e", "tertiary-fixed-dim": "#4ae176", "surface-container-lowest": "#0d0d16", "tertiary-container": "#00a74b", "surface-dim": "#13131c", "secondary-container": "#a40217", "on-secondary": "#68000a", "on-error": "#690005", "on-secondary-fixed-variant": "#930013", "on-secondary-fixed": "#410004", "on-primary-fixed": "#2c0051", "inverse-on-surface": "#302f39", "on-background": "#e4e1ee", "surface-container-highest": "#34343e", "background": "#13131c", "secondary-fixed": "#ffdad7", "surface-container-low": "#1b1b24", "on-tertiary-fixed-variant": "#005321", "on-primary-fixed-variant": "#6900b3", "error": "#ffb4ab", "on-surface": "#e4e1ee", "inverse-primary": "#842bd2", "secondary-fixed-dim": "#ffb3ad", "primary-fixed-dim": "#ddb7ff", "on-error-container": "#ffdad6", "primary-container": "#b76dff", "on-tertiary-fixed": "#002109", "on-tertiary": "#003915", "on-secondary-container": "#ffaea8", "primary-fixed": "#f0dbff", "on-tertiary-container": "#003111", "surface-bright": "#393842", "primary": "#ddb7ff", "surface-container-high": "#292933", "tertiary": "#4ae176", "tertiary-fixed": "#6bff8f", "surface-container": "#1f1f28", "outline-variant": "#4d4354", "secondary": "#ffb3ad", "on-surface-variant": "#cfc2d6", "on-primary-container": "#400071", "outline": "#988d9f" }, borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, spacing: { "margin-mobile": "1rem", "space-lg": "1.5rem", "space-xl": "2.5rem", "space-xs": "0.25rem", "gutter-mobile": "1rem", "space-md": "1rem", "margin": "2rem", "space-sm": "0.5rem", "gutter": "1.5rem" }, fontFamily: { "label-lg": ["JetBrains Mono"], "display-lg": ["Newsreader"], "body-lg": ["Inter"], "body-sm": ["Inter"], "headline-lg": ["Newsreader"], "headline-lg-mobile": ["Newsreader"], "title-md": ["Inter"], "display-lg-mobile": ["Newsreader"], "body-md": ["Inter"], "headline-md": ["Newsreader"], "label-md": ["JetBrains Mono"], "label-sm": ["JetBrains Mono"], "headline-sm": ["Newsreader"] }, fontSize: { "label-lg": ["0.875rem", { lineHeight: "1.25rem", letterSpacing: "0.04em", fontWeight: "500" }], "display-lg": ["3.5rem", { lineHeight: "4rem", letterSpacing: "-0.02em", fontWeight: "600" }], "body-lg": ["1.125rem", { lineHeight: "1.75rem", letterSpacing: "0em", fontWeight: "400" }], "body-sm": ["0.75rem", { lineHeight: "1.125rem", letterSpacing: "0.02em", fontWeight: "400" }], "headline-lg": ["2.25rem", { lineHeight: "2.75rem", letterSpacing: "-0.015em", fontWeight: "500" }], "headline-lg-mobile": ["1.75rem", { lineHeight: "2.25rem", letterSpacing: "-0.01em", fontWeight: "500" }], "title-md": ["1rem", { lineHeight: "1.5rem", letterSpacing: "0.01em", fontWeight: "600" }], "display-lg-mobile": ["2.25rem", { lineHeight: "2.75rem", letterSpacing: "-0.01em", fontWeight: "600" }], "body-md": ["0.875rem", { lineHeight: "1.375rem", letterSpacing: "0.01em", fontWeight: "400" }], "headline-md": ["1.75rem", { lineHeight: "2.25rem", letterSpacing: "-0.01em", fontWeight: "500" }], "label-md": ["0.75rem", { lineHeight: "1rem", letterSpacing: "0.06em", fontWeight: "500" }], "label-sm": ["0.625rem", { lineHeight: "0.875rem", letterSpacing: "0.08em", fontWeight: "500" }], "headline-sm": ["1.25rem", { lineHeight: "1.75rem", letterSpacing: "0em", fontWeight: "500" }] } } } };</script><title>Investigation Report — Digital Graveyard</title><link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
+<link href="/src/custom.css" rel="stylesheet"/></head><body class="bg-surface text-on-surface font-body-md text-body-md antialiased min-h-screen relative selection:bg-primary selection:text-on-primary" data-page="report"><div class="fixed inset-0 pointer-events-none z-0 overflow-hidden"><div class="absolute -top-32 left-1/4 w-[36rem] h-[36rem] rounded-full bg-primary/5 blur-[120px]"></div><div class="absolute top-1/3 -right-24 w-[32rem] h-[32rem] rounded-full bg-secondary-container/5 blur-[130px]"></div><div class="absolute -bottom-24 left-1/3 w-[40rem] h-[40rem] rounded-full bg-primary-container/5 blur-[140px]"></div></div>
+<!-- TOP NAVIGATION -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-[#08080D]/85 backdrop-blur-xl border-b border-primary/20 shadow-[0_4px_30px_rgba(0,0,0,0.8)]"><div class="h-20 w-full px-margin flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg"><a class="flex items-center gap-space-sm group" data-path="home" href="#"><img alt="Digital Graveyard Logo" class="h-8 w-auto object-contain drop-shadow-[0_0_8px_rgba(221,183,255,0.4)]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_1NP06PY8uwSAEoA6W0ULf622sTk3WCpONPWQ1dcrEk_LBN2duY7N9hoGMZmvi2typasi2pmxSRkDcGnTt27Z1wUnstUUP28gniKyzqwX-wjNL6xv_NRRr_vlLa9DivJ678uFgx2iOOl1n8WuPo3NiGDqvSB9EM6FC2jDwvBFTKJCo_bv0xwjyl-p8l5ubOiKpBt0SbaZo8c8tafNmzTNGscddnx4ptT7IbHO_I03"/><span class="font-['Cinzel'] uppercase font-bold tracking-[0.18em] text-primary text-title-md drop-shadow-[0_0_12px_rgba(221,183,255,0.45)] group-hover:text-primary-fixed transition-all">DIGITAL GRAVEYARD</span></a><nav class="hidden xl:flex items-center gap-space-xs p-1" data-active-classes="bg-surface-container-high text-primary font-bold rounded-lg"><a class="px-space-md py-space-sm text-on-surface-variant hover:text-on-surface font-label-md text-label-md uppercase tracking-wider transition-colors" data-path="home" href="#">Home</a><a class="px-space-md py-space-sm text-on-surface-variant hover:text-on-surface font-label-md text-label-md uppercase tracking-wider transition-colors" data-path="scanner" href="#">Scanner</a><a aria-current="page" class="px-space-md py-space-sm uppercase tracking-wider transition-colors bg-surface-container-high text-primary font-bold rounded-lg" data-path="analysis-report" href="#">Analysis Report</a><a class="px-space-md py-space-sm text-on-surface-variant hover:text-on-surface font-label-md text-label-md uppercase tracking-wider transition-colors" data-path="how-it-works" href="#">How It Works</a><a class="px-space-md py-space-sm text-on-surface-variant hover:text-on-surface font-label-md text-label-md uppercase tracking-wider transition-colors" data-path="threat-matrix" href="#">Threat Matrix</a></nav></div><div class="flex items-center gap-space-md"><div class="hidden sm:flex items-center gap-space-xs px-space-md py-space-xs rounded-full bg-surface-container border border-tertiary/30 shadow-[0_0_12px_rgba(74,225,118,0.15)]"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary"></span></span><span class="font-label-sm text-label-sm text-tertiary uppercase tracking-wider font-semibold">AI SCANNER ONLINE</span></div><a class="inline-flex items-center justify-center px-space-md py-space-sm rounded-lg bg-gradient-to-r from-primary-container to-primary text-on-primary-container font-label-md text-label-md font-bold uppercase tracking-wider shadow-[0_0_16px_rgba(183,109,255,0.4)] hover:shadow-[0_0_24px_rgba(183,109,255,0.7)] hover:brightness-110 active:scale-[0.98] transition-all" data-path="scanner" href="#">SCAN A WEBSITE</a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(221,183,255,0.3)]"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header>
+<main class="relative z-10 w-full pt-20 bg-transparent min-h-[calc(100vh-20rem)]"><div class="mx-auto max-w-[1360px] px-4 md:px-8 pt-4" id="report-demo-notice"><div class="inline-flex items-center gap-2 rounded-md border border-amber-400/25 bg-amber-400/5 px-3 py-2 text-xs font-mono text-amber-200/90">DEMO REPORT · Scores and findings are sample values, not a live security assessment.</div></div>
+<div class="flex flex-col w-full">
+<div class="relative w-full max-w-[1360px] mx-auto px-margin-mobile md:px-margin pt-space-lg pb-space-xl">
+<!-- TOP BREADCRUMBS & ACTION STRIP -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md mb-space-lg border-b border-outline-variant/30 pb-space-md">
+<div class="flex flex-wrap items-center gap-space-xs font-label-md text-label-md tracking-wider">
+<a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1" data-path="home" href="#">
+          HOME
+        </a>
+<span class="text-outline">/</span>
+<a class="text-on-surface-variant hover:text-primary transition-colors" data-path="scanner" href="#">
+          SCANNER
+        </a>
+<span class="text-outline">/</span>
+<span class="text-primary font-bold drop-shadow-[0_0_8px_rgba(221,183,255,0.7)] flex items-center gap-1.5">
+<span class="h-1.5 w-1.5 rounded-full bg-primary inline-block"></span> INVESTIGATION REPORT
+        </span>
+</div>
+<div class="flex flex-wrap items-center gap-space-sm">
+<button class="px-space-md py-space-xs rounded-lg bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant/40 hover:border-primary/40 text-on-surface font-label-md text-label-md flex items-center gap-space-xs shadow-md transition-all active:scale-[0.98]" id="pdfExportBtn">
+<span class="material-symbols-outlined text-[18px] text-primary">download</span>
+<span>Download Report</span>
+</button>
+<a class="px-space-md py-space-xs rounded-lg bg-primary-container text-on-primary-container hover:brightness-110 font-label-md text-label-md font-bold tracking-wider flex items-center gap-space-xs shadow-[0_0_16px_rgba(183,109,255,0.35)] transition-all active:scale-[0.98]" data-path="scanner" href="#">
+<span class="material-symbols-outlined text-[18px]">travel_explore</span>
+<span>Scan Another Website</span>
+</a>
+</div>
+</div>
+<!-- SECTION 1: WEBSITE IDENTITY & RISK SCORE (CLEAN CYBERSECURITY OVERVIEW) -->
+<section class="relative bg-gradient-to-br from-surface-container-high/90 via-surface-container/95 to-surface-container-low/95 rounded-2xl border border-primary/25 shadow-[0_12px_40px_rgba(0,0,0,0.6)] p-space-lg lg:p-space-xl mb-space-xl overflow-hidden backdrop-blur-xl">
+<!-- Ambient Subtle Backdrops -->
+<div class="absolute -top-24 -left-24 w-80 h-80 bg-primary/10 rounded-full blur-[110px] pointer-events-none"></div>
+<div class="absolute -bottom-24 -right-24 w-96 h-96 bg-tertiary/10 rounded-full blur-[130px] pointer-events-none"></div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center relative z-10">
+<!-- Left: Target Dossier Meta -->
+<div class="lg:col-span-8 space-y-space-md">
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="px-space-sm py-1 rounded bg-surface-container-highest/90 border border-outline-variant/50 text-on-surface-variant font-label-sm text-label-sm font-semibold tracking-widest uppercase">
+              WEBSITE INVESTIGATION
+            </span>
+<span class="px-space-sm py-1 rounded-full bg-tertiary-container/30 border border-tertiary/40 text-tertiary font-label-sm text-label-sm font-bold tracking-wider uppercase flex items-center gap-1.5 shadow-[0_0_12px_rgba(74,225,118,0.25)]">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary"></span>
+</span>
+              LOW RISK
+            </span>
+</div>
+<div>
+<h1 class="text-display-lg-mobile md:text-display-lg font-headline-lg text-primary tracking-tight font-['Cinzel'] drop-shadow-[0_0_16px_rgba(221,183,255,0.45)] leading-tight">
+              example.com
+            </h1>
+<div class="flex flex-wrap items-center gap-x-space-md gap-y-1 mt-space-xs font-label-md text-label-md">
+<a class="inline-flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors" href="https://example.com" id="report-site-link" rel="noopener noreferrer" target="_blank">
+<span class="font-mono text-primary/90 underline underline-offset-4 decoration-primary/40">https://example.com</span>
+<span class="material-symbols-outlined text-[15px]">open_in_new</span>
+</a>
+<span class="text-outline/40">•</span>
+<span class="text-outline font-mono flex items-center gap-1" id="report-scan-timestamp">
+<span class="material-symbols-outlined text-[16px] text-outline">schedule</span>
+                OCTOBER 31, 2025 // 23:42:18 UTC
+              </span>
+</div>
+</div>
+<!-- AI Assessment Card -->
+<div class="bg-surface-container-lowest/85 rounded-xl border border-primary/20 p-space-md shadow-inner space-y-space-xs">
+<div class="flex items-center justify-between gap-space-sm text-primary font-label-sm text-label-sm font-semibold uppercase tracking-wider">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">psychology</span>
+                AI FORENSIC RECONNAISSANCE SUMMARY
+              </span>
+<span class="text-outline font-mono text-[10px] tracking-widest px-2 py-0.5 rounded bg-surface-container-highest">DEMO VALUES</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+              Initial investigation indicates relatively low detectable risk. The domain presents positive security and transparency signals, although some indicators remain unverified.
+            </p>
+</div>
+</div>
+<!-- Right: Large Circular Score Gauge (No 3D Character) -->
+<div class="lg:col-span-4 flex items-center justify-center">
+<div class="relative w-64 h-64 shrink-0 flex items-center justify-center">
+<!-- Emerald and Purple Glow Rings -->
+<div class="absolute inset-4 rounded-full bg-gradient-to-tr from-primary/20 to-tertiary/20 blur-2xl animate-glow-pulse pointer-events-none"></div>
+<svg class="w-full h-full -rotate-90 transform drop-shadow-[0_0_28px_rgba(74,225,118,0.3)]" viewbox="0 0 160 160">
+<defs>
+<lineargradient id="scoreGaugeGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#b76dff"></stop>
+<stop offset="50%" stop-color="#ddb7ff"></stop>
+<stop offset="100%" stop-color="#4ae176"></stop>
+</lineargradient>
+<filter height="140%" id="gaugeGlow" width="140%" x="-20%" y="-20%">
+<fegaussianblur result="blur" stddeviation="4"></fegaussianblur>
+<fecomposite in="SourceGraphic" in2="blur" operator="over"></fecomposite>
+</filter>
+</defs>
+<!-- Background Track -->
+<circle class="text-surface-container-highest/70" cx="80" cy="80" fill="transparent" r="64" stroke="currentColor" stroke-width="12"></circle>
+<!-- Progress Arc: 72% of 402.12 = dashoffset 112.6 -->
+<circle class="transition-all duration-1000 ease-out" cx="80" cy="80" fill="transparent" filter="url(#gaugeGlow)" r="64" stroke="url(#scoreGaugeGradient)" stroke-dasharray="402.1" stroke-dashoffset="112.6" stroke-linecap="round" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-widest font-semibold">WEBSITE RISK SCORE</span>
+<div class="flex items-baseline justify-center gap-0.5 my-1">
+<span class="text-display-lg font-bold font-['Cinzel'] text-primary tracking-tight drop-shadow-[0_0_18px_rgba(221,183,255,0.7)]">72</span>
+<span class="text-title-md font-label-md text-outline">/100</span>
+</div>
+<span class="px-space-sm py-0.5 rounded-full bg-tertiary-container/30 border border-tertiary/30 text-tertiary font-label-sm text-label-sm uppercase font-semibold tracking-wider">
+                NORMALIZED
+              </span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 2: RISK FACTOR BREAKDOWN (UNDER THE MICROSCOPE - 6 HORIZONTAL ROWS) -->
+<section class="mb-space-xl">
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-space-xs mb-space-md border-b border-outline-variant/30 pb-space-sm">
+<div>
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold block">FORENSIC TELEMETRY</span>
+<h2 class="text-headline-md font-headline-md text-on-surface font-['Cinzel'] tracking-tight">UNDER THE MICROSCOPE</h2>
+</div>
+<p class="font-label-md text-label-md text-outline">
+          6 Core Security &amp; Behavioral Vectors Evaluated
+        </p>
+</div>
+<!-- Compact Horizontal Rows (Clean, spacious, professional cards) -->
+<div class="bg-surface-container/85 rounded-xl border border-outline-variant/30 divide-y divide-outline-variant/25 shadow-lg overflow-hidden backdrop-blur-md">
+<!-- Row 1: SSL / Certificate Security -->
+<div class="p-space-md hover:bg-surface-container-high/60 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md min-w-[280px]">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest border border-tertiary/30 flex items-center justify-center text-tertiary shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[20px]">verified_user</span>
+</div>
+<div>
+<div class="font-title-md text-title-md text-on-surface font-semibold">SSL / Certificate Security</div>
+<div class="font-body-sm text-body-sm text-outline">DigiCert TLS 1.3 cryptographic cipher with valid SAN chain</div>
+</div>
+</div>
+<div class="flex-1 max-w-xl mx-0 md:mx-space-md">
+<div class="flex justify-between items-center text-label-sm font-label-sm mb-1.5">
+<span class="text-outline uppercase">Strength Vector</span>
+<span class="text-tertiary font-bold font-mono">95 / 100</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden">
+<div class="bg-tertiary h-full rounded-full shadow-[0_0_8px_rgba(74,225,118,0.5)]" style="width: 95%;"></div>
+</div>
+</div>
+<div class="shrink-0 self-start md:self-auto">
+<span class="px-space-md py-1 rounded-full bg-tertiary-container/30 border border-tertiary/40 text-tertiary font-label-sm text-label-sm font-bold tracking-wider uppercase">
+              SECURE
+            </span>
+</div>
+</div>
+<!-- Row 2: Domain Intelligence -->
+<div class="p-space-md hover:bg-surface-container-high/60 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md min-w-[280px]">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest border border-primary/30 flex items-center justify-center text-primary shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[20px]">history_edu</span>
+</div>
+<div>
+<div class="font-title-md text-title-md text-on-surface font-semibold">Domain Intelligence</div>
+<div class="font-body-sm text-body-sm text-outline">11+ years continuous registration with clean WHOIS telemetry</div>
+</div>
+</div>
+<div class="flex-1 max-w-xl mx-0 md:mx-space-md">
+<div class="flex justify-between items-center text-label-sm font-label-sm mb-1.5">
+<span class="text-outline uppercase">Strength Vector</span>
+<span class="text-primary font-bold font-mono">80 / 100</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-full rounded-full shadow-[0_0_8px_rgba(221,183,255,0.5)]" style="width: 80%;"></div>
+</div>
+</div>
+<div class="shrink-0 self-start md:self-auto">
+<span class="px-space-md py-1 rounded-full bg-primary/20 border border-primary/40 text-primary font-label-sm text-label-sm font-bold tracking-wider uppercase">
+              POSITIVE SIGNALS
+            </span>
+</div>
+</div>
+<!-- Row 3: Website Transparency -->
+<div class="p-space-md hover:bg-surface-container-high/60 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md min-w-[280px]">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest border border-tertiary/30 flex items-center justify-center text-tertiary shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[20px]">policy</span>
+</div>
+<div>
+<div class="font-title-md text-title-md text-on-surface font-semibold">Website Transparency</div>
+<div class="font-body-sm text-body-sm text-outline">Clear entity ownership records and accessible terms &amp; privacy policies</div>
+</div>
+</div>
+<div class="flex-1 max-w-xl mx-0 md:mx-space-md">
+<div class="flex justify-between items-center text-label-sm font-label-sm mb-1.5">
+<span class="text-outline uppercase">Strength Vector</span>
+<span class="text-tertiary font-bold font-mono">75 / 100</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden">
+<div class="bg-tertiary/80 h-full rounded-full shadow-[0_0_8px_rgba(74,225,118,0.4)]" style="width: 75%;"></div>
+</div>
+</div>
+<div class="shrink-0 self-start md:self-auto">
+<span class="px-space-md py-1 rounded-full bg-tertiary-container/30 border border-tertiary/40 text-tertiary font-label-sm text-label-sm font-bold tracking-wider uppercase">
+              GOOD
+            </span>
+</div>
+</div>
+<!-- Row 4: Reputation Intelligence -->
+<div class="p-space-md hover:bg-surface-container-high/60 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md min-w-[280px]">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest border border-amber-400/30 flex items-center justify-center text-amber-300 shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[20px]">troubleshoot</span>
+</div>
+<div>
+<div class="font-title-md text-title-md text-on-surface font-semibold">Reputation Intelligence</div>
+<div class="font-body-sm text-body-sm text-outline">Clean across 38/40 global feeds; 2 legacy honeypot notifications flagged</div>
+</div>
+</div>
+<div class="flex-1 max-w-xl mx-0 md:mx-space-md">
+<div class="flex justify-between items-center text-label-sm font-label-sm mb-1.5">
+<span class="text-outline uppercase">Strength Vector</span>
+<span class="text-amber-300 font-bold font-mono">60 / 100</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden">
+<div class="bg-amber-400 h-full rounded-full shadow-[0_0_8px_rgba(251,191,36,0.45)]" style="width: 60%;"></div>
+</div>
+</div>
+<div class="shrink-0 self-start md:self-auto">
+<span class="px-space-md py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 font-label-sm text-label-sm font-bold tracking-wider uppercase">
+              MODERATE
+            </span>
+</div>
+</div>
+<!-- Row 5: Content Analysis -->
+<div class="p-space-md hover:bg-surface-container-high/60 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md min-w-[280px]">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest border border-orange-400/30 flex items-center justify-center text-orange-300 shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[20px]">code_blocks</span>
+</div>
+<div>
+<div class="font-title-md text-title-md text-on-surface font-semibold">Content Analysis</div>
+<div class="font-body-sm text-body-sm text-outline">No obfuscated JS or malicious iframes; CSP response headers absent</div>
+</div>
+</div>
+<div class="flex-1 max-w-xl mx-0 md:mx-space-md">
+<div class="flex justify-between items-center text-label-sm font-label-sm mb-1.5">
+<span class="text-outline uppercase">Strength Vector</span>
+<span class="text-orange-300 font-bold font-mono">70 / 100</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden">
+<div class="bg-orange-400 h-full rounded-full shadow-[0_0_8px_rgba(251,146,60,0.45)]" style="width: 70%;"></div>
+</div>
+</div>
+<div class="shrink-0 self-start md:self-auto">
+<span class="px-space-md py-1 rounded-full bg-orange-500/20 border border-orange-400/40 text-orange-300 font-label-sm text-label-sm font-bold tracking-wider uppercase">
+              MODERATE
+            </span>
+</div>
+</div>
+<!-- Row 6: Website Behaviour -->
+<div class="p-space-md hover:bg-surface-container-high/60 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md min-w-[280px]">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest border border-tertiary/30 flex items-center justify-center text-tertiary shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[20px]">lan</span>
+</div>
+<div>
+<div class="font-title-md text-title-md text-on-surface font-semibold">Website Behaviour</div>
+<div class="font-body-sm text-body-sm text-outline">HSTS enforced, stable response times (&lt;120ms), zero deceptive redirects</div>
+</div>
+</div>
+<div class="flex-1 max-w-xl mx-0 md:mx-space-md">
+<div class="flex justify-between items-center text-label-sm font-label-sm mb-1.5">
+<span class="text-outline uppercase">Strength Vector</span>
+<span class="text-tertiary font-bold font-mono">85 / 100</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden">
+<div class="bg-tertiary h-full rounded-full shadow-[0_0_8px_rgba(74,225,118,0.45)]" style="width: 85%;"></div>
+</div>
+</div>
+<div class="shrink-0 self-start md:self-auto">
+<span class="px-space-md py-1 rounded-full bg-tertiary-container/30 border border-tertiary/40 text-tertiary font-label-sm text-label-sm font-bold tracking-wider uppercase">
+              GOOD
+            </span>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 3: AI VERDICT (THE GRAVEKEEPER'S VERDICT) - CLEAN PROFESSIONAL INTELLIGENCE REPORT -->
+<section class="relative bg-gradient-to-b from-[#181326] via-[#141221] to-[#0f0e1a] rounded-2xl border border-primary/30 p-space-lg lg:p-space-xl shadow-[0_16px_50px_rgba(0,0,0,0.7)] mb-space-xl overflow-hidden backdrop-blur-xl">
+<!-- Ambient Subtle Purple Glow -->
+<div class="absolute -top-20 right-1/4 w-96 h-96 bg-primary-container/10 rounded-full blur-[120px] pointer-events-none"></div>
+<!-- Clean Header Without Character Illustration -->
+<div class="relative flex flex-col md:flex-row md:items-start justify-between gap-space-md pb-space-lg border-b border-outline-variant/30 mb-space-lg">
+<div class="space-y-1">
+<div class="flex items-center gap-space-xs text-primary font-label-sm text-label-sm uppercase tracking-widest font-semibold">
+<span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+            AI-POWERED INTELLIGENCE REPORT
+          </div>
+<h2 class="text-headline-lg font-headline-lg text-on-surface font-['Cinzel'] tracking-tight">
+            THE GRAVEKEEPER'S VERDICT
+          </h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+            Autonomous multi-vector analysis synthesized from live DNS probes, edge certificate chains, and federated threat feeds.
+          </p>
+</div>
+<div class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container border border-primary/30 self-start">
+<span class="material-symbols-outlined text-primary text-[18px]">verified</span>
+<span class="font-label-sm text-label-sm text-primary font-mono font-semibold uppercase tracking-wider">VERIFIED TELEMETRY</span>
+</div>
+</div>
+<!-- 3 Clean Columns: POSITIVE SIGNALS | SUSPICIOUS INDICATORS | RECOMMENDATIONS -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md relative z-10">
+<!-- Column 1: POSITIVE SIGNALS (Green) -->
+<div class="bg-surface-container-lowest/80 rounded-xl border border-tertiary/20 p-space-md space-y-space-md">
+<div class="flex items-center justify-between border-b border-outline-variant/20 pb-space-xs">
+<div class="flex items-center gap-space-xs text-tertiary font-label-md text-label-md font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+              POSITIVE SIGNALS
+            </div>
+<span class="text-tertiary font-mono text-label-sm font-semibold">3 DETECTED</span>
+</div>
+<ul class="space-y-space-sm font-body-sm text-body-sm text-on-surface-variant">
+<li class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-tertiary text-[18px] shrink-0 mt-0.5">task_alt</span>
+<span><strong>DigiCert TLS Authority:</strong> Cryptographic integrity verified with zero revocation notices.</span>
+</li>
+<li class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-tertiary text-[18px] shrink-0 mt-0.5">task_alt</span>
+<span><strong>Established Domain Age:</strong> Continuous 11-year registration without ownership transfers or gaps.</span>
+</li>
+<li class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-tertiary text-[18px] shrink-0 mt-0.5">task_alt</span>
+<span><strong>DNSSEC &amp; Strict SPF:</strong> Valid DNS signing and authenticated email security policy configured.</span>
+</li>
+</ul>
+</div>
+<!-- Column 2: SUSPICIOUS INDICATORS (Red) -->
+<div class="bg-surface-container-lowest/80 rounded-xl border border-secondary-container/40 p-space-md space-y-space-md">
+<div class="flex items-center justify-between border-b border-outline-variant/20 pb-space-xs">
+<div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-[20px]">warning</span>
+              SUSPICIOUS INDICATORS
+            </div>
+<span class="text-secondary font-mono text-label-sm font-semibold">3 ADVISORIES</span>
+</div>
+<ul class="space-y-space-sm font-body-sm text-body-sm text-on-surface-variant">
+<li class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[18px] shrink-0 mt-0.5">error_outline</span>
+<span><strong>Wildcard DNS Routing:</strong> Wildcard records resolve peripheral subdomains with minimal isolation.</span>
+</li>
+<li class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[18px] shrink-0 mt-0.5">error_outline</span>
+<span><strong>Missing CSP Headers:</strong> Content-Security-Policy headers are not currently enforced at the edge.</span>
+</li>
+<li class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[18px] shrink-0 mt-0.5">error_outline</span>
+<span><strong>Minor Honeypot Flags:</strong> Low-confidence historical flags observed on two peripheral subnet IPs.</span>
+</li>
+</ul>
+</div>
+<!-- Column 3: RECOMMENDATIONS (Purple) -->
+<div class="bg-surface-container-lowest/80 rounded-xl border border-primary/30 p-space-md space-y-space-md">
+<div class="flex items-center justify-between border-b border-outline-variant/20 pb-space-xs">
+<div class="flex items-center gap-space-xs text-primary font-label-md text-label-md font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-[20px]">security</span>
+              RECOMMENDATIONS
+            </div>
+<span class="text-primary font-mono text-label-sm font-semibold">ACTIONABLE</span>
+</div>
+<ul class="space-y-space-sm font-body-sm text-body-sm text-on-surface-variant">
+<li class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">health_and_safety</span>
+<span><strong>Implement Strict CSP:</strong> Define trusted source directives for scripts and external stylesheet resources.</span>
+</li>
+<li class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">health_and_safety</span>
+<span><strong>Prune Dormant Endpoints:</strong> Deprecate obsolete staging records and enforce zero-trust perimeter access.</span>
+</li>
+<li class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">health_and_safety</span>
+<span><strong>Enroll in HSTS Preload:</strong> Submit domain to browser root preloading lists for absolute TLS integrity.</span>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<!-- SECTION 4: EVIDENCE EXPLORER (BENEATH THE SURFACE - INTERACTIVE ACCORDIONS) -->
+<section class="mb-space-xl">
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-space-xs mb-space-md border-b border-outline-variant/30 pb-space-sm">
+<div>
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold block">RAW TELEMETRY VAULT</span>
+<h2 class="text-headline-md font-headline-md text-on-surface font-['Cinzel'] tracking-tight">BENEATH THE SURFACE</h2>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="text-outline hover:text-primary font-label-sm text-label-sm transition-colors uppercase tracking-wider" id="expandAllBtn">
+            [ Expand All ]
+          </button>
+<span class="text-outline/40">/</span>
+<button class="text-outline hover:text-primary font-label-sm text-label-sm transition-colors uppercase tracking-wider" id="collapseAllBtn">
+            [ Collapse All ]
+          </button>
+</div>
+</div>
+<!-- Accordion List (Terminal-inspired JetBrains Mono typography) -->
+<div class="space-y-space-sm" id="accordionContainer">
+<!-- Accordion Item 1: SSL Certificate Details -->
+<div class="bg-surface-container/85 rounded-xl border border-outline-variant/30 overflow-hidden transition-all duration-200 shadow-sm">
+<button class="accordion-trigger w-full px-space-md py-space-sm flex items-center justify-between text-left hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px] transition-transform duration-300 accordion-icon">chevron_right</span>
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider font-semibold">
+                [01] SSL Certificate Details
+              </span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-label-sm text-label-sm text-tertiary px-2 py-0.5 rounded bg-tertiary-container/20 border border-tertiary/30 font-mono">TLS 1.3 // ACTIVE</span>
+<span class="font-label-sm text-label-sm text-outline hidden md:inline font-mono">SHA256:4C8F...</span>
+</div>
+</button>
+<div class="accordion-content hidden px-space-md py-space-md bg-surface-container-lowest font-['JetBrains_Mono'] text-label-sm text-on-surface-variant space-y-2 border-t border-outline-variant/20 overflow-x-auto">
+<p class="text-primary font-semibold">// CRYPTOGRAPHIC CERTIFICATE RECORD SPECIMEN</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-space-lg gap-y-1">
+<div><span class="text-outline">Common Name:</span> example.com</div>
+<div><span class="text-outline">Issuer Org:</span> DigiCert Inc</div>
+<div><span class="text-outline">Subject Alt Names:</span> example.com, *.example.com, m.example.com</div>
+<div><span class="text-outline">Signature Algorithm:</span> sha256WithRSAEncryption (2048-bit)</div>
+<div><span class="text-outline">Valid From:</span> 2024-12-01 00:00:00 UTC</div>
+<div><span class="text-outline">Valid Until:</span> 2026-12-01 23:59:59 UTC</div>
+<div><span class="text-outline">OCSP Stapling:</span> Verified (Stapled in TLS Handshake)</div>
+<div><span class="text-outline">Certificate Transparency:</span> 3 Embedded SCTs Verified</div>
+</div>
+<div class="mt-2 pt-2 border-t border-outline-variant/20 text-outline text-[11px]">
+              SHA-256 FINGERPRINT: 4C:8F:90:7E:11:AB:6C:54:99:34:E1:92:DF:CC:A4:77:30:19:62:3B:11:F2:70:9A:88:EC:39:2A:44:EE:11:80
+            </div>
+</div>
+</div>
+<!-- Accordion Item 2: Domain Registration -->
+<div class="bg-surface-container/85 rounded-xl border border-outline-variant/30 overflow-hidden transition-all duration-200 shadow-sm">
+<button class="accordion-trigger w-full px-space-md py-space-sm flex items-center justify-between text-left hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px] transition-transform duration-300 accordion-icon">chevron_right</span>
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider font-semibold">
+                [02] Domain Registration &amp; Registry Metadata
+              </span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-label-sm text-label-sm text-primary px-2 py-0.5 rounded bg-primary/20 border border-primary/30 font-mono">ICANN VERIFIED</span>
+<span class="font-label-sm text-label-sm text-outline hidden md:inline font-mono">AGE: 11+ YRS</span>
+</div>
+</button>
+<div class="accordion-content hidden px-space-md py-space-md bg-surface-container-lowest font-['JetBrains_Mono'] text-label-sm text-on-surface-variant space-y-2 border-t border-outline-variant/20 overflow-x-auto">
+<p class="text-primary font-semibold">// WHOIS REGISTRAR AUDIT TRAIL</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-space-lg gap-y-1">
+<div><span class="text-outline">Domain Name:</span> EXAMPLE.COM</div>
+<div><span class="text-outline">Registry Domain ID:</span> 2336799_DOMAIN_COM-VRSN</div>
+<div><span class="text-outline">Registrar:</span> RESERVED-Internet Assigned Numbers Authority</div>
+<div><span class="text-outline">Creation Date:</span> 1995-08-14T04:00:00Z</div>
+<div><span class="text-outline">Registry Expiry Date:</span> 2026-08-13T04:00:00Z</div>
+<div><span class="text-outline">Authoritative Nameservers:</span> a.iana-servers.net, b.iana-servers.net</div>
+<div><span class="text-outline">DNSSEC:</span> signedDelegation</div>
+<div><span class="text-outline">Domain Status:</span> clientDeleteProhibited, clientTransferProhibited</div>
+</div>
+</div>
+</div>
+<!-- Accordion Item 3: HTTP Response and Redirects -->
+<div class="bg-surface-container/85 rounded-xl border border-outline-variant/30 overflow-hidden transition-all duration-200 shadow-sm">
+<button class="accordion-trigger w-full px-space-md py-space-sm flex items-center justify-between text-left hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px] transition-transform duration-300 accordion-icon">chevron_right</span>
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider font-semibold">
+                [03] HTTP Response and Redirects
+              </span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-label-sm text-label-sm text-amber-300 px-2 py-0.5 rounded bg-amber-500/20 border border-amber-400/30 font-mono">HEADERS AUDIT</span>
+<span class="font-label-sm text-label-sm text-outline hidden md:inline font-mono">STATUS: 200 OK</span>
+</div>
+</button>
+<div class="accordion-content hidden px-space-md py-space-md bg-surface-container-lowest font-['JetBrains_Mono'] text-label-sm text-on-surface-variant space-y-2 border-t border-outline-variant/20 overflow-x-auto">
+<p class="text-primary font-semibold">// EDGE RESPONSE HEADERS DUMP (PORT 443)</p>
+<pre class="text-on-surface text-[12px] leading-relaxed bg-surface-container/50 p-space-sm rounded font-['JetBrains_Mono']">HTTP/2 200 OK
+Age: 531201
+Cache-Control: max-age=604800
+Content-Type: text/html; charset=UTF-8
+Date: Thu, 31 Oct 2025 23:42:18 GMT
+Etag: "3147526947+gzip+ident"
+Expires: Thu, 07 Nov 2025 23:42:18 GMT
+Server: ECS (dcb/7F4B)
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Frame-Options: SAMEORIGIN
+<span class="text-secondary font-bold"># MISSING: Content-Security-Policy (Advisory)</span>
+<span class="text-secondary font-bold"># MISSING: X-Content-Type-Options: nosniff</span></pre>
+</div>
+</div>
+<!-- Accordion Item 4: Extracted Website Metadata -->
+<div class="bg-surface-container/85 rounded-xl border border-outline-variant/30 overflow-hidden transition-all duration-200 shadow-sm">
+<button class="accordion-trigger w-full px-space-md py-space-sm flex items-center justify-between text-left hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px] transition-transform duration-300 accordion-icon">chevron_right</span>
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider font-semibold">
+                [04] Extracted Website Metadata
+              </span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-label-sm text-label-sm text-tertiary px-2 py-0.5 rounded bg-tertiary-container/20 border border-tertiary/30 font-mono">CLEAN MARKUP</span>
+<span class="font-label-sm text-label-sm text-outline hidden md:inline font-mono">UTF-8</span>
+</div>
+</button>
+<div class="accordion-content hidden px-space-md py-space-md bg-surface-container-lowest font-['JetBrains_Mono'] text-label-sm text-on-surface-variant space-y-2 border-t border-outline-variant/20 overflow-x-auto">
+<p class="text-primary font-semibold">// DOCUMENT HEAD TELEMETRY</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-space-lg gap-y-1">
+<div><span class="text-outline">Title Tag:</span> "Example Domain"</div>
+<div><span class="text-outline">Character Encoding:</span> UTF-8</div>
+<div><span class="text-outline">Viewport Configuration:</span> width=device-width, initial-scale=1</div>
+<div><span class="text-outline">Inline Scripts:</span> 0 detected</div>
+<div><span class="text-outline">External Resources:</span> None (Static self-contained page)</div>
+<div><span class="text-outline">Favicon Hash:</span> SHA-1 Verified Default Specimen</div>
+</div>
+</div>
+</div>
+<!-- Accordion Item 5: Privacy & Contact Info -->
+<div class="bg-surface-container/85 rounded-xl border border-outline-variant/30 overflow-hidden transition-all duration-200 shadow-sm">
+<button class="accordion-trigger w-full px-space-md py-space-sm flex items-center justify-between text-left hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px] transition-transform duration-300 accordion-icon">chevron_right</span>
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider font-semibold">
+                [05] Privacy &amp; Contact Info
+              </span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-label-sm text-label-sm text-primary px-2 py-0.5 rounded bg-primary/20 border border-primary/30 font-mono">TRANSPARENT</span>
+<span class="font-label-sm text-label-sm text-outline hidden md:inline font-mono">RFC 2606</span>
+</div>
+</button>
+<div class="accordion-content hidden px-space-md py-space-md bg-surface-container-lowest font-['JetBrains_Mono'] text-label-sm text-on-surface-variant space-y-2 border-t border-outline-variant/20 overflow-x-auto">
+<p class="text-primary font-semibold">// REGULATORY &amp; COMPLIANCE MAPPING</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-space-lg gap-y-1">
+<div><span class="text-outline">Governing Body:</span> Internet Assigned Numbers Authority (IANA)</div>
+<div><span class="text-outline">Designation:</span> Reserved for Documentation under RFC 2606 &amp; 6761</div>
+<div><span class="text-outline">Abuse Contact:</span> abuse@iana.org</div>
+<div><span class="text-outline">Physical Jurisdiction:</span> United States / Global Consortium</div>
+</div>
+</div>
+</div>
+<!-- Accordion Item 6: Reputation Sources -->
+<div class="bg-surface-container/85 rounded-xl border border-outline-variant/30 overflow-hidden transition-all duration-200 shadow-sm">
+<button class="accordion-trigger w-full px-space-md py-space-sm flex items-center justify-between text-left hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px] transition-transform duration-300 accordion-icon">chevron_right</span>
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider font-semibold">
+                [06] Reputation Sources &amp; Threat Feeds
+              </span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-label-sm text-label-sm text-tertiary px-2 py-0.5 rounded bg-tertiary-container/20 border border-tertiary/30 font-mono">38/40 CONSENSUS</span>
+<span class="font-label-sm text-label-sm text-outline hidden md:inline font-mono">OTX / VT / PHISH</span>
+</div>
+</button>
+<div class="accordion-content hidden px-space-md py-space-md bg-surface-container-lowest font-['JetBrains_Mono'] text-label-sm text-on-surface-variant space-y-2 border-t border-outline-variant/20 overflow-x-auto">
+<p class="text-primary font-semibold">// GLOBAL BLACKLIST FEDERATION SYNC</p>
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-space-sm pt-1">
+<div class="p-2.5 rounded bg-surface-container flex items-center justify-between">
+<span class="text-on-surface font-semibold">VirusTotal</span>
+<span class="text-tertiary font-bold">0 / 89</span>
+</div>
+<div class="p-2.5 rounded bg-surface-container flex items-center justify-between">
+<span class="text-on-surface font-semibold">AlienVault OTX</span>
+<span class="text-tertiary font-bold">CLEAN</span>
+</div>
+<div class="p-2.5 rounded bg-surface-container flex items-center justify-between">
+<span class="text-on-surface font-semibold">PhishTank</span>
+<span class="text-tertiary font-bold">UNLISTED</span>
+</div>
+<div class="p-2.5 rounded bg-surface-container flex items-center justify-between">
+<span class="text-on-surface font-semibold">Spamhaus DBL</span>
+<span class="text-amber-300 font-bold">MODERATE FLAG</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Accordion Item 7: AI Analysis -->
+<div class="bg-surface-container/85 rounded-xl border border-outline-variant/30 overflow-hidden transition-all duration-200 shadow-sm">
+<button class="accordion-trigger w-full px-space-md py-space-sm flex items-center justify-between text-left hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px] transition-transform duration-300 accordion-icon">chevron_right</span>
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider font-semibold">
+                [07] Deep AI Behavioral &amp; Heuristic Analysis
+              </span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-label-sm text-label-sm text-primary px-2 py-0.5 rounded bg-primary/20 border border-primary/30 font-mono">NEURAL COGNITION</span>
+<span class="font-label-sm text-label-sm text-outline hidden md:inline font-mono">CONFIDENCE: 98.4%</span>
+</div>
+</button>
+<div class="accordion-content hidden px-space-md py-space-md bg-surface-container-lowest font-['JetBrains_Mono'] text-label-sm text-on-surface-variant space-y-2 border-t border-outline-variant/20 overflow-x-auto">
+<p class="text-primary font-semibold">// REASONING CHAIN &amp; LATENT RISK CORRELATION</p>
+<div class="text-on-surface-variant text-[12px] space-y-1.5 leading-relaxed">
+<p>&gt; Target shows no signs of credential spoofing, domain homoglyph deception, or typo-squatting targets.</p>
+<p>&gt; Behavioral entropy remains minimal; server response footprint indicates RFC standard static hosting.</p>
+<p>&gt; Final neural heuristic verdict: Low risk profile with nominal administrative header improvements recommended.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 5: FINAL RECOMMENDATION (YOUR NEXT MOVE) -->
+<section class="relative bg-gradient-to-r from-surface-container-high via-surface-container to-surface-container-high rounded-2xl border border-primary/30 p-space-lg lg:p-space-xl shadow-xl overflow-hidden backdrop-blur-xl">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center relative z-10">
+<!-- Left: Actionable Guidance -->
+<div class="lg:col-span-8 space-y-space-sm">
+<div class="flex items-center gap-space-xs text-primary font-label-sm text-label-sm uppercase tracking-widest font-semibold">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+            FINAL RECOMMENDATION
+          </div>
+<h2 class="text-headline-lg font-headline-lg text-on-surface font-['Cinzel'] tracking-tight">
+            YOUR NEXT MOVE
+          </h2>
+<div class="inline-flex items-center gap-space-xs px-space-sm py-1 rounded bg-tertiary-container/20 border border-tertiary/30 text-tertiary font-label-sm text-label-sm font-semibold mb-space-xs">
+<span class="h-2 w-2 rounded-full bg-tertiary"></span>
+            OVERALL RISK CLASSIFICATION: LOW RISK TARGET (FAVORABLE INTEGRITY)
+          </div>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed max-w-2xl">
+            example.com is verified safe for standard user interaction and informational traffic. If auditing internal enterprise systems, implement edge CSP directives and store this cryptographic verification in your incident repository.
+          </p>
+<div class="flex flex-wrap items-center gap-space-md pt-space-xs">
+<label class="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm cursor-pointer select-none">
+<input checked="" class="rounded bg-surface-container-highest border-outline-variant text-primary focus:ring-0" type="checkbox"/>
+<span>Archive digital dossier to security database</span>
+</label>
+<label class="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm cursor-pointer select-none">
+<input class="rounded bg-surface-container-highest border-outline-variant text-primary focus:ring-0" type="checkbox"/>
+<span>Schedule automated quarterly telemetry re-scan</span>
+</label>
+</div>
+</div>
+<!-- Right: Prominent Actions (No Characters) -->
+<div class="lg:col-span-4 flex flex-col items-center justify-center gap-space-md">
+<div class="w-full flex flex-col gap-space-sm">
+<button class="w-full px-space-lg py-space-md rounded-lg bg-gradient-to-r from-primary-container to-primary text-on-primary-container font-label-md text-label-md font-bold uppercase tracking-wider shadow-[0_0_24px_rgba(183,109,255,0.45)] hover:shadow-[0_0_34px_rgba(183,109,255,0.7)] hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-space-xs" id="downloadPdfCta">
+<span class="material-symbols-outlined text-[20px]">download</span>
+<span>DOWNLOAD REPORT</span>
+</button>
+<a class="w-full px-space-lg py-space-md rounded-lg bg-surface-container hover:bg-surface-container-highest border border-outline-variant/40 hover:border-primary/40 text-on-surface font-label-md text-label-md font-semibold uppercase tracking-wider shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-space-xs" data-path="scanner" href="#">
+<span class="material-symbols-outlined text-[20px] text-primary">travel_explore</span>
+<span>INVESTIGATE ANOTHER WEBSITE</span>
+</a>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+<!-- MATCHING FOOTER -->
+<footer class="relative z-10 w-full bg-[#08080D]/95 border-t border-primary/20 pt-space-xl pb-space-lg text-on-surface-variant"><div class="w-full px-margin mx-auto"><div class="grid grid-cols-1 md:grid-cols-12 gap-gutter pb-space-xl border-b border-outline-variant/30"><div class="md:col-span-5 space-y-space-md"><div class="flex items-center gap-space-sm"><img alt="Digital Graveyard Logo" class="h-8 w-auto object-contain drop-shadow-[0_0_8px_rgba(221,183,255,0.4)]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_1NP06PY8uwSAEoA6W0ULf622sTk3WCpONPWQ1dcrEk_LBN2duY7N9hoGMZmvi2typasi2pmxSRkDcGnTt27Z1wUnstUUP28gniKyzqwX-wjNL6xv_NRRr_vlLa9DivJ678uFgx2iOOl1n8WuPo3NiGDqvSB9EM6FC2jDwvBFTKJCo_bv0xwjyl-p8l5ubOiKpBt0SbaZo8c8tafNmzTNGscddnx4ptT7IbHO_I03"/><span class="font-['Cinzel'] uppercase font-bold tracking-[0.16em] text-primary text-title-md drop-shadow-[0_0_10px_rgba(221,183,255,0.4)]">DIGITAL GRAVEYARD</span></div><p class="text-body-sm font-body-sm text-on-surface-variant/90 max-w-md leading-relaxed">AI-driven threat intelligence uncovering the hidden vulnerabilities, cursed signals, and deceptive patterns buried across the web.</p><div class="flex items-center gap-space-sm pt-space-xs"><span class="font-label-sm text-label-sm text-tertiary flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-tertiary inline-block"></span>TELEMETRY REPOSITORY: SYNCHRONIZED</span></div></div><div class="md:col-span-3 space-y-space-sm"><h3 class="font-label-md text-label-md uppercase tracking-wider text-on-surface font-semibold">Platform Navigation</h3><ul class="space-y-space-xs font-body-sm text-body-sm"><li class="" data-nav-target="home"><a class="hover:text-primary transition-colors" data-path="home" href="#">Home Overview</a></li><li class="" data-nav-target="scanner"><a class="hover:text-primary transition-colors" data-path="scanner" href="#">Forensic Scanner</a></li><li class="" data-nav-target="analysis-report"><a class="hover:text-primary transition-colors" data-path="analysis-report" href="#">Analysis Report Matrix</a></li><li class="" data-nav-target="threat-matrix"><a class="hover:text-primary transition-colors" data-path="threat-matrix" href="#">Threat Knowledge Base</a></li></ul></div><div class="md:col-span-4 space-y-space-sm"><h3 class="font-label-md text-label-md uppercase tracking-wider text-on-surface font-semibold">Security Forensics Protocol</h3><ul class="space-y-space-xs font-body-sm text-body-sm"><li class="" data-nav-target="documentation"><a class="hover:text-primary transition-colors" data-path="documentation" href="#">Engine Architecture &amp; Heuristics</a></li><li class="" data-nav-target="api-reference"><a class="hover:text-primary transition-colors" data-path="api-reference" href="#">Spectral API Reference</a></li><li class="" data-nav-target="containment-policy"><a class="hover:text-primary transition-colors" data-path="containment-policy" href="#">Containment Protocols</a></li></ul></div></div><div class="pt-space-lg flex flex-col md:flex-row items-center justify-between gap-space-md text-center md:text-left"><p class="text-body-sm font-body-sm text-outline max-w-2xl">A risk assessment is not a guarantee of website safety or maliciousness. For professional security intelligence.</p><p class="text-label-sm font-label-sm text-outline tracking-wider">© 2026 DIGITAL GRAVEYARD. ALL RIGHTS RESERVED.</p></div></div></footer>
+<script src="/src/app.js" type="module"></script></body></html>
