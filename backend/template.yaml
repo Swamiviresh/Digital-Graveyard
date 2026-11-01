@@ -1,0 +1,304 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Digital Graveyard asynchronous website risk analysis API
+
+Parameters:
+  AllowedOrigins:
+    Type: String
+    Default: http://localhost:5173
+    Description: Exact browser origins permitted by CORS, comma-separated; add the deployed frontend origin.
+
+  GeminiModelId:
+    Type: String
+    Default: gemini-3.5-flash-lite
+    Description: Google Gemini model for AI website briefings.
+
+  GeminiSecretArn:
+    Type: String
+    Description: ARN of the Gemini API key in Secrets Manager.
+
+  BedrockModelId:
+    Type: String
+    Default: ''
+    Description: Amazon Nova Lite foundation model ID; override only with a Converse-compatible model available in BedrockRegion.
+
+  BedrockRegion:
+    Type: String
+    Default: us-east-1
+
+  ReputationSecretArn:
+    Type: String
+    Default: ''
+    Description: Optional Secrets Manager secret JSON with provider API keys.
+
+  MaxScansPerMinute:
+    Type: Number
+    Default: 5
+
+  MaxConcurrentScans:
+    Type: Number
+    Default: 5
+
+  RiskModerateThreshold:
+    Type: Number
+    Default: 25
+
+  RiskHighThreshold:
+    Type: Number
+    Default: 50
+
+  RiskCriticalThreshold:
+    Type: Number
+    Default: 75
+
+Globals:
+  Function:
+    Runtime: nodejs24.x
+    Architectures: [arm64]
+    MemorySize: 512
+    Timeout: 15
+    Tracing: Active
+    Environment:
+      Variables:
+        SCAN_TABLE_NAME: !Ref ScanTable
+        RATE_TABLE_NAME: !Ref RateTable
+        MAX_SCANS_PER_MINUTE: !Ref MaxScansPerMinute
+        RISK_MODERATE_THRESHOLD: !Ref RiskModerateThreshold
+        RISK_HIGH_THRESHOLD: !Ref RiskHighThreshold
+        RISK_CRITICAL_THRESHOLD: !Ref RiskCriticalThreshold
+        BEDROCK_MODEL_ID: !Ref BedrockModelId
+        BEDROCK_REGION: !Ref BedrockRegion
+        REPUTATION_SECRET_ARN: !Ref ReputationSecretArn
+        LOG_LEVEL: info
+
+Resources:
+  ScanTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: scanId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: scanId
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+
+  RateTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: rateKey
+          AttributeType: S
+      KeySchema:
+        - AttributeName: rateKey
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+
+  ScanDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+
+  ScanQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 720
+      MessageRetentionPeriod: 345600
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt ScanDlq.Arn
+        maxReceiveCount: 3
+
+  ScanApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      EndpointConfiguration: REGIONAL
+      TracingEnabled: true
+      MethodSettings:
+        - ResourcePath: '/*'
+          HttpMethod: '*'
+          ThrottlingBurstLimit: 30
+          ThrottlingRateLimit: 10
+
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        EntryPoints: [src/api/handlers.ts]
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        Format: cjs
+        OutExtension: ['.js=.cjs']
+    Properties:
+      CodeUri: .
+      Handler: handlers.handler
+      Timeout: 15
+      MemorySize: 512
+      Environment:
+        Variables:
+          SCAN_QUEUE_URL: !Ref ScanQueue
+          ALLOWED_ORIGINS: !Ref AllowedOrigins
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+              Resource: !GetAtt ScanTable.Arn
+
+            - Effect: Allow
+              Action:
+                - dynamodb:UpdateItem
+              Resource: !GetAtt RateTable.Arn
+
+            - Effect: Allow
+              Action:
+                - sqs:SendMessage
+              Resource: !GetAtt ScanQueue.Arn
+
+      Events:
+        CreateScan:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ScanApi
+            Path: /api/scans
+            Method: POST
+
+        GetScan:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ScanApi
+            Path: '/api/scans/{scanId}'
+            Method: GET
+
+        GetReport:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ScanApi
+            Path: '/api/scans/{scanId}/report'
+            Method: GET
+
+        OptionsCollection:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ScanApi
+            Path: /api/scans
+            Method: OPTIONS
+
+        OptionsScan:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ScanApi
+            Path: '/api/scans/{scanId}'
+            Method: OPTIONS
+
+        OptionsReport:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ScanApi
+            Path: '/api/scans/{scanId}/report'
+            Method: OPTIONS
+
+  WorkerFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        EntryPoints: [src/worker/handler.ts]
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        Format: cjs
+        OutExtension: ['.js=.cjs']
+    Properties:
+      CodeUri: .
+      Handler: handler.handler
+      Timeout: 120
+      MemorySize: 1024
+      Environment:
+        Variables:
+          SCAN_QUEUE_URL: !Ref ScanQueue
+          GEMINI_MODEL_ID: !Ref GeminiModelId
+          GEMINI_SECRET_ARN: !Ref GeminiSecretArn
+
+      Policies:
+        - SQSPollerPolicy:
+            QueueName: !GetAtt ScanQueue.QueueName
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Ref GeminiSecretArn
+
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:UpdateItem
+              Resource: !GetAtt ScanTable.Arn
+
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: !If
+                - HasBedrockModel
+                - !Sub 'arn:aws:bedrock:${BedrockRegion}::foundation-model/${BedrockModelId}'
+                - !Sub 'arn:aws:bedrock:${BedrockRegion}::foundation-model/unconfigured'
+
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - HasReputationSecret
+                - !Ref ReputationSecretArn
+                - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:digital-graveyard-disabled'
+
+      Events:
+        QueuedScans:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ScanQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: !Ref MaxConcurrentScans
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+
+Conditions:
+  HasBedrockModel: !Not
+    - !Equals
+      - !Ref BedrockModelId
+      - ''
+
+  HasReputationSecret: !Not
+    - !Equals
+      - !Ref ReputationSecretArn
+      - ''
+
+Outputs:
+  ApiBaseUrl:
+    Description: Base URL for the production API stage
+    Value: !Sub 'https://${ScanApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/prod'
+
+  ScanTableName:
+    Value: !Ref ScanTable
+
+  QueueUrl:
+    Value: !Ref ScanQueue

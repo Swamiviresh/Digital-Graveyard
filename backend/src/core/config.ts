@@ -1,0 +1,20 @@
+export const config = {
+  region: process.env.AWS_REGION || 'us-east-1',
+  scanTable: process.env.SCAN_TABLE_NAME || 'DigitalGraveyardScans',
+  rateTable: process.env.RATE_TABLE_NAME || 'DigitalGraveyardRateLimits',
+  queueUrl: process.env.SCAN_QUEUE_URL || '',
+  allowedOrigins: (process.env.ALLOWED_ORIGINS || 'http://localhost:5173').split(',').map(value => value.trim()).filter(Boolean),
+  maxPerMinute: Number(process.env.MAX_SCANS_PER_MINUTE || 5),
+  maxResponseBytes: 512 * 1024,
+  connectTimeoutMs: 5000,
+  requestTimeoutMs: 10000,
+  maxRedirects: 5,
+  maxHtmlChars: 350_000,
+  recordTtlSeconds: 7 * 24 * 60 * 60,
+  bedrockModelId: process.env.BEDROCK_MODEL_ID || '',
+  bedrockRegion: process.env.BEDROCK_REGION || process.env.AWS_REGION || 'us-east-1',
+  geminiModelId: process.env.GEMINI_MODEL_ID || 'gemini-3.5-flash-lite',
+  geminiSecretArn: process.env.GEMINI_SECRET_ARN || '',
+
+  reputationSecretArn: process.env.REPUTATION_SECRET_ARN || '',
+};

@@ -1,0 +1,15 @@
+version = 0.1
+
+[dev.deploy.parameters]
+stack_name = "digital-graveyard"
+resolve_s3 = true
+s3_prefix = "digital-graveyard"
+profile = "digital-graveyard"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "AllowedOrigins=\"http://localhost:5173\" BedrockModelId=\"\" BedrockRegion=\"us-east-1\" ReputationSecretArn=\"\" MaxScansPerMinute=\"5\" MaxConcurrentScans=\"5\" RiskModerateThreshold=\"25\" RiskHighThreshold=\"50\" RiskCriticalThreshold=\"75\""
+image_repositories = []
+disable_rollback = true
+
+[dev.global.parameters]
+region = "ap-south-1"

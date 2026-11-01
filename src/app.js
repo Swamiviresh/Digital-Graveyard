@@ -1,3 +1,5 @@
+import { API_BASE_URL } from './config.js';
+
 function mountSharedFooter() {
   const existing = document.querySelector('[data-shared-footer], .dg-site-footer');
   if (!existing) return;
@@ -9,7 +11,7 @@ function mountSharedFooter() {
     <div class="dg-footer-inner">
       <div class="dg-footer-bottom">
         <a class="dg-footer-home-link" data-path="home" href="/">DIGITAL GRAVEYARD · WEBSITE HOME</a>
-        <p>A risk assessment is not a guarantee of website safety or maliciousness.</p>
+        <p>A security score reflects observed evidence; it is not a guarantee of website safety.</p>
         <div class="dg-footer-meta">
           <a class="dg-footer-site-url" href="/" data-site-url aria-label="Open this website">Website URL</a>
           <a href="https://github.com/Swamiviresh/Digital-Graveyard" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a>
@@ -175,14 +177,14 @@ function setStageState(element, state) {
   if (!element) return;
   const icon = element.querySelector('.material-symbols-outlined');
   const badge = element.querySelector('span:last-child');
-  if (state === 'active') {
+  if (state === 'active' || state === 'demo') {
     element.className = 'flex items-center justify-between p-2.5 rounded-lg bg-surface-container-high/90 text-primary font-medium transition-all shadow-[0_0_15px_rgba(183,109,255,0.15)]';
     if (icon) {
       icon.textContent = 'progress_activity';
       icon.classList.add('animate-spin');
     }
     if (badge) {
-      badge.textContent = 'SIMULATING';
+      badge.textContent = state === 'demo' ? 'DEMO' : 'SCANNING';
       badge.className = 'text-[11px] text-primary font-mono font-bold';
     }
   } else if (state === 'done') {
@@ -198,107 +200,398 @@ function setStageState(element, state) {
   }
 }
 
-function initScanner() {
-  const form = document.getElementById('url-scanner-form');
-  if (!form) return;
+async function runDemoSequence(target, ui) {
+  const { inputContainer, chamber, heading, eyebrow, description, activeTarget, progressBar, percentageText, stageStatus, completedAction } = ui;
+  const scan = { url: target.href, hostname: target.hostname, submittedAt: new Date().toISOString(), mode: 'demo' };
+  sessionStorage.setItem('dg-current-scan', JSON.stringify(scan));
+  inputContainer?.classList.add('hidden'); chamber?.classList.remove('hidden');
+  if (heading) heading.innerHTML = 'Analyzing <span class="italic text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-fixed to-tertiary">Digital Footprint...</span>';
+  if (eyebrow) eyebrow.textContent = 'DEMO SCAN IN PROGRESS';
+  if (description) description.textContent = 'This is a labelled frontend demonstration. No live website checks are being performed.';
+  if (activeTarget) activeTarget.textContent = target.href;
+  if (completedAction) completedAction.classList.add('hidden');
+  const stages = [
+    {id:'stage-1',text:'Preparing demo target',duration:300},{id:'stage-2',text:'Demo TLS stage',duration:300},
+    {id:'stage-3',text:'Demo domain stage',duration:300},{id:'stage-4',text:'Demo content stage',duration:300},
+    {id:'stage-5',text:'Demo reputation stage',duration:300},{id:'stage-6',text:'Demo behavior stage',duration:300},
+    {id:'stage-7',text:'Demo AI stage',duration:300},{id:'stage-8',text:'Opening labelled sample report',duration:300},
+  ];
+  for (let i=0;i<stages.length;i++) {
+    const stage=stages[i], node=document.getElementById(stage.id);
+    setStageState(node,'demo'); if(stageStatus) stageStatus.textContent=stage.text;
+    if(progressBar) progressBar.style.width=`${Math.round((i+1)/stages.length*100)}%`;
+    if(percentageText) percentageText.textContent=`${Math.round((i+1)/stages.length*100)}%`;
+    await new Promise(resolve=>window.setTimeout(resolve,stage.duration)); setStageState(node,'done');
+  }
+  if (completedAction) completedAction.classList.remove('hidden');
+  window.location.href='/report/?demo=1';
+}
 
-  const input = document.getElementById('target-url-input');
-  const inputContainer = document.getElementById('scanner-input-container');
-  const chamber = document.getElementById('interactive-scanning-chamber');
-  const heading = document.getElementById('main-heading');
-  const eyebrow = document.getElementById('eyebrow-text');
-  const description = document.getElementById('main-description');
-  const activeTarget = document.getElementById('active-target-url');
-  const progressBar = document.getElementById('scan-progress-bar');
-  const percentageText = document.getElementById('scan-percentage-text');
-  const stageStatus = document.getElementById('stage-status-indicator');
-  const completedAction = document.getElementById('scan-completed-action');
+function setLiveProgress(progress, stage, currentStage, ui) {
+  if (ui.stageStatus) ui.stageStatus.textContent = stage || 'Analyzing evidence';
+  if (ui.progressBar) ui.progressBar.style.width = `${progress}%`;
+  if (ui.percentageText) ui.percentageText.textContent = `${progress}%`;
+  const stageForProgress = Math.min(8, Math.max(1, Math.ceil(progress / 13)));
+  for (let i=1;i<=8;i++) {
+    const node=document.getElementById(`stage-${i}`);
+    if (i < stageForProgress) setStageState(node,'done');
+    else if (i === stageForProgress && i !== currentStage) setStageState(node,'active');
+  }
+}
 
-  window.fillTarget = (value) => {
-    if (input) {
-      input.value = value;
-      input.focus();
+async function submitLiveScan(target, ui) {
+  ui.inputContainer?.classList.add('hidden'); ui.chamber?.classList.remove('hidden');
+  if(ui.eyebrow) ui.eyebrow.textContent='LIVE SCAN QUEUED';
+  if(ui.description) ui.description.textContent='The backend is collecting evidence. Progress updates come from the scan worker.';
+  if(ui.activeTarget) ui.activeTarget.textContent=target.href;
+  const response=await fetch(`${API_BASE_URL}/api/scans`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:target.href}),signal:AbortSignal.timeout(15000)});
+  const created=await response.json();
+  if(!response.ok) throw new Error(created?.error?.message||`Unable to queue scan (${response.status}).`);
+  sessionStorage.setItem('dg-current-scan',JSON.stringify({url:target.href,hostname:target.hostname,submittedAt:new Date().toISOString(),mode:'live',scanId:created.scanId}));
+  let lastStage='';
+  for(let attempt=0;attempt<600;attempt++) {
+    const statusResponse=await fetch(`${API_BASE_URL}/api/scans/${encodeURIComponent(created.scanId)}`,{cache:'no-store',signal:AbortSignal.timeout(15000)});
+    const status=await statusResponse.json();
+    if(!statusResponse.ok) throw new Error(status?.error?.message||`Unable to read scan status (${statusResponse.status}).`);
+    if(status.stage!==lastStage){lastStage=status.stage;setLiveProgress(status.progress||0,status.stage,0,ui);}
+    else setLiveProgress(status.progress||0,status.stage,0,ui);
+    if(status.status==='COMPLETED') {
+      if(ui.completedAction) ui.completedAction.classList.remove('hidden');
+      window.location.href=`/report/?scanId=${encodeURIComponent(created.scanId)}`; return;
     }
+    if(status.status==='FAILED') throw new Error(status.error?.message||'The scan failed. Try again later.');
+    await new Promise(resolve=>window.setTimeout(resolve,1500));
+  }
+  throw new Error('The scan is taking longer than expected. You can reopen its report later using scan ID '+created.scanId+'.');
+}
+
+function initScanner() {
+  const form=document.getElementById('url-scanner-form'); if(!form) return;
+  const input=document.getElementById('target-url-input');
+  const ui={inputContainer:document.getElementById('scanner-input-container'),chamber:document.getElementById('interactive-scanning-chamber'),heading:document.getElementById('main-heading'),eyebrow:document.getElementById('eyebrow-text'),description:document.getElementById('main-description'),activeTarget:document.getElementById('active-target-url'),progressBar:document.getElementById('scan-progress-bar'),percentageText:document.getElementById('scan-percentage-text'),stageStatus:document.getElementById('stage-status-indicator'),completedAction:document.getElementById('scan-completed-action')};
+  window.fillTarget=value=>{if(input){input.value=value;input.focus();}};
+  const note=document.getElementById('scan-demo-note');
+  if(note) note.textContent=API_BASE_URL?'LIVE SCAN MODE · Results come from the configured analysis API.':'DEMO MODE · No backend URL is configured; the sample report is not a live assessment.';
+  form.addEventListener('submit',async event=>{
+    event.preventDefault(); let target;
+    try{target=normalizeTarget(input?.value);}catch(error){showInlineError(error.message);input?.focus();return;}
+    document.getElementById('scan-url-error')?.remove();
+    const demoRequested=new URLSearchParams(location.search).get('demo')==='1';
+    try {
+      if(API_BASE_URL&&!demoRequested) await submitLiveScan(target,ui);
+      else await runDemoSequence(target,ui);
+    } catch(error) {
+      ui.chamber?.classList.add('hidden'); ui.inputContainer?.classList.remove('hidden');
+      showInlineError(error instanceof Error?error.message:'Unable to start the scan.');
+    }
+  });
+}
+
+function textList(container, values, className='') {
+  if (!container) return;
+  container.replaceChildren();
+  for (const value of values || []) {
+    const li=document.createElement('li'); li.className=className; li.textContent=String(value); container.appendChild(li);
+  }
+}
+function compactEvidenceSummary(key, data) {
+  if (!data || typeof data !== 'object') return 'No structured evidence was returned for this check.';
+  const unavailable = data.available === false;
+  if (unavailable) {
+    const providerReasons = Array.isArray(data.providers)
+      ? data.providers.filter(p => p && p.available === false).map(p => `${p.name || 'Provider'}: ${p.reason || 'unavailable'}`)
+      : [];
+    const reason = data.reason || data.error || data.connectionError || providerReasons.join(' · ');
+    return String(reason || 'This check was unavailable; no result was inferred.');
+  }
+
+  const parts = [];
+  if (key === 'ssl') {
+    const cert = data.certificate && typeof data.certificate === 'object' ? data.certificate : {};
+    parts.push(data.valid === true ? 'Certificate trusted' : data.valid === false ? 'Certificate validation needs review' : 'TLS connection observed');
+    if (data.hostnameMatches === true) parts.push('hostname matches');
+    if (data.hostnameMatches === false) parts.push('hostname mismatch');
+    if (data.daysUntilExpiry !== null && data.daysUntilExpiry !== undefined && Number.isFinite(Number(data.daysUntilExpiry))) parts.push(`${data.daysUntilExpiry} days until expiry`);
+    const cn = cert.subject && typeof cert.subject === 'object' ? cert.subject.CN : null;
+    if (cn) parts.push(`issued to ${String(cn).slice(0, 100)}`);
+    if (data.connectionError) parts.push(`probe note: ${data.connectionError}`);
+    return parts.join(' · ') || 'TLS evidence collected.';
+  }
+
+  if (key === 'domain') {
+    if (data.domainAgeYears !== null && data.domainAgeYears !== undefined && Number.isFinite(Number(data.domainAgeYears))) parts.push(`domain age ${data.domainAgeYears} years`);
+    if (data.registrar) parts.push(`registrar ${String(data.registrar).slice(0, 90)}`);
+    const ipv4 = Array.isArray(data.ipv4) ? data.ipv4.length : 0;
+    const ipv6 = Array.isArray(data.ipv6) ? data.ipv6.length : 0;
+    const ns = Array.isArray(data.nameservers) ? data.nameservers.length : 0;
+    parts.push(`DNS: ${ipv4} IPv4 · ${ipv6} IPv6 · ${ns} nameservers`);
+    parts.push(data.rdapAvailable ? 'RDAP available' : 'RDAP unavailable');
+    return parts.join(' · ');
+  }
+
+  if (key === 'httpSecurity') {
+    const headers = data.headers && typeof data.headers === 'object' ? data.headers : {};
+    const presence = (name, value) => `${name} ${value ? 'present' : 'missing'}`;
+    parts.push(`HTTP ${data.status ?? 'status unavailable'}`);
+    parts.push(`${Number(data.redirectCount || 0)} redirects`);
+    parts.push(presence('HSTS', headers.hsts));
+    parts.push(presence('CSP', headers.contentSecurityPolicy));
+    parts.push(presence('nosniff', headers.xContentTypeOptions));
+    if (data.finalUrl) parts.push(`final URL ${String(data.finalUrl).slice(0, 100)}`);
+    return parts.join(' · ');
+  }
+
+  if (key === 'content') {
+    if (data.title) parts.push(`Page title: ${String(data.title).slice(0, 90)}`);
+    parts.push(`${Number(data.forms || 0)} forms · ${Number(data.credentialForms || 0)} credential forms`);
+    parts.push(`${Number(data.scriptCount || 0)} scripts (${Number(data.externalScriptCount || 0)} external)`);
+    const signals = [];
+    if (data.obfuscationPattern) signals.push('obfuscation-like script pattern');
+    if (Array.isArray(data.suspiciousTerms) && data.suspiciousTerms.length) signals.push(`${data.suspiciousTerms.length} suspicious language matches`);
+    if (Array.isArray(data.suspiciousDownloads) && data.suspiciousDownloads.length) signals.push(`${data.suspiciousDownloads.length} executable/archive links`);
+    parts.push(signals.length ? signals.join(', ') : 'No listed content indicators detected');
+    return parts.join(' · ');
+  }
+
+  if (key === 'reputation') {
+    const providers = Array.isArray(data.providers) ? data.providers : [];
+    if (!providers.length) return 'No reputation providers returned evidence.';
+    return providers.map(provider => {
+      if (!provider || provider.available === false) return `${provider?.name || 'Provider'} unavailable: ${provider?.reason || 'no result'}`;
+      const stats = provider.stats && typeof provider.stats === 'object' ? provider.stats : {};
+      const malicious = Number(provider.malicious ?? stats.malicious ?? 0);
+      const suspicious = Number(provider.suspicious ?? stats.suspicious ?? 0);
+      const total = Number(provider.total ?? Object.values(stats).reduce((a, b) => a + Number(b || 0), 0));
+      return `${provider.name || 'Provider'}: ${malicious} malicious · ${suspicious} suspicious · ${total} engines`;
+    }).join(' · ');
+  }
+
+  return 'Evidence collected; open the detailed evidence panel for the full record.';
+}
+
+function resolveSecurityPresentation(report) {
+  let score = null;
+  if (typeof report.securityScore === 'number' && Number.isFinite(report.securityScore)) {
+    score = Math.max(0, Math.min(100, Math.round(report.securityScore)));
+  } else if (typeof report.score === 'number' && Number.isFinite(report.score)) {
+    // Compatibility with reports persisted before the direction change:
+    // the old `score` field represented risk, so invert it for display.
+    score = Math.max(0, Math.min(100, Math.round(100 - report.score)));
+  }
+
+  let level = report.securityLevel;
+  if (!level || !['critical-risk', 'high-risk', 'moderate', 'good', 'strong', 'unknown'].includes(level)) {
+    if (score === null) level = 'unknown';
+    else if (score < 20) level = 'critical-risk';
+    else if (score < 40) level = 'high-risk';
+    else if (score < 60) level = 'moderate';
+    else if (score < 80) level = 'good';
+    else level = 'strong';
+  }
+
+  const labels = {
+    'critical-risk': 'CRITICAL RISK',
+    'high-risk': 'HIGH RISK',
+    moderate: 'MODERATE SECURITY',
+    good: 'GOOD SECURITY',
+    strong: 'STRONG SECURITY',
+    unknown: 'INSUFFICIENT DATA',
+  };
+  return { score, level, label: labels[level] || labels.unknown };
+}
+
+function renderLiveReport(report) {
+  const sections=[...document.querySelectorAll('main section')];
+  const identity=sections[0], factorsSection=sections[1], verdictSection=sections[2], evidenceSection=sections[3], finalSection=sections[4];
+  const host=new URL(report.targetUrl).hostname;
+  const ai=report.ai || {available:false,sitePurpose:'AI website summary is unavailable for this report.',safetyAssessment:'No AI safety assessment was returned. Review the deterministic score, findings and evidence coverage.',verdict:'AI explanation unavailable.',positives:[],concerns:[],recommendations:[],limitations:[]};
+  const security=resolveSecurityPresentation(report);
+  const h1=identity?.querySelector('h1'); if(h1) h1.textContent=host;
+  const siteLink=document.getElementById('report-site-link'); if(siteLink){siteLink.href=report.targetUrl;siteLink.textContent=report.targetUrl;}
+  const time=document.getElementById('report-scan-timestamp'); if(time) time.textContent=`${new Date(report.scannedAt).toLocaleString()} · LIVE`;
+  const notice=document.querySelector('#report-demo-notice > div'); if(notice) notice.textContent=`LIVE REPORT · Evidence-based security results for ${host}. Unavailable checks are shown separately.`;
+
+  const score=document.querySelector('.dg-score-value');
+  if(score) score.textContent=security.score === null ? '—' : String(security.score);
+  const scoreBar=document.querySelector('.dg-score-track');
+  if(scoreBar){
+    scoreBar.setAttribute('aria-label','Website security score');
+    if(security.score === null) scoreBar.removeAttribute('aria-valuenow');
+    else scoreBar.setAttribute('aria-valuenow',String(security.score));
+    scoreBar.setAttribute('aria-valuetext',security.score === null ? 'Insufficient data' : `${security.score} out of 100; higher is more secure`);
+  }
+  const scoreFill=document.querySelector('.dg-score-track-fill');
+  if(scoreFill){
+    scoreFill.style.width=`${security.score ?? 0}%`;
+    scoreFill.classList.remove('dg-score-tone--critical-risk','dg-score-tone--high-risk','dg-score-tone--moderate','dg-score-tone--good','dg-score-tone--strong','dg-score-tone--unknown');
+    scoreFill.classList.add(`dg-score-tone--${security.level}`);
+  }
+  const scoreValue=document.querySelector('.dg-score-value');
+  if(scoreValue){
+    scoreValue.classList.remove('dg-score-tone--critical-risk','dg-score-tone--high-risk','dg-score-tone--moderate','dg-score-tone--good','dg-score-tone--strong','dg-score-tone--unknown');
+    scoreValue.classList.add(`dg-score-tone--${security.level}`);
+  }
+  const norm=document.querySelector('.dg-score-normalized');
+  if(norm){
+    norm.textContent=security.label;
+    norm.classList.remove('dg-score-tone--critical-risk','dg-score-tone--high-risk','dg-score-tone--moderate','dg-score-tone--good','dg-score-tone--strong','dg-score-tone--unknown');
+    norm.classList.add(`dg-score-tone--${security.level}`);
+  }
+  const scoreHeading=document.querySelector('.dg-score-card-heading > span:nth-child(2)');
+  if(scoreHeading) scoreHeading.textContent='WEBSITE SECURITY SCORE';
+  const scale=document.querySelector('.dg-score-scale');
+  if(scale){
+    const ends=scale.querySelectorAll('span');
+    if(ends[0]) ends[0].textContent='0 · SUSPICIOUS';
+    if(ends[1]) ends[1].textContent='100 · SECURE';
+  }
+  let coverageNote=document.querySelector('.dg-score-coverage');
+  if(!coverageNote && scoreBar?.parentElement){
+    coverageNote=document.createElement('div');
+    coverageNote.className='dg-score-coverage';
+    scoreBar.parentElement.insertAdjacentElement('afterend',coverageNote);
+  }
+  if(coverageNote){
+    const coverage=Number.isFinite(report.evidenceCoverage) ? Math.max(0,Math.min(100,Math.round(report.evidenceCoverage))) : null;
+    coverageNote.textContent=coverage === null ? 'EVIDENCE COVERAGE NOT PROVIDED' : `EVIDENCE COVERAGE · ${coverage}%${coverage < 100 ? ' · SOME CHECKS UNAVAILABLE' : ''}`;
+  }
+
+  const securityBadge=identity&&[...identity.querySelectorAll('span')].find(n=>/LOW RISK|MODERATE RISK|HIGH RISK|CRITICAL RISK|UNKNOWN RISK|STRONG SECURITY|GOOD SECURITY|MODERATE SECURITY|INSUFFICIENT DATA/i.test(n.textContent||''));
+  if(securityBadge){
+    securityBadge.textContent=security.label;
+    securityBadge.classList.remove('dg-security-badge--critical-risk','dg-security-badge--high-risk','dg-security-badge--moderate','dg-security-badge--good','dg-security-badge--strong','dg-security-badge--unknown');
+    securityBadge.classList.add(`dg-security-badge--${security.level}`);
+  }
+  const sitePurpose=document.getElementById('ai-site-purpose');
+  if(sitePurpose) sitePurpose.textContent=ai.sitePurpose || 'The website purpose could not be summarized from the available page evidence.';
+  const safetyAssessment=document.getElementById('ai-safety-assessment');
+  if(safetyAssessment) safetyAssessment.textContent=ai.safetyAssessment || 'An AI safety assessment was not returned. Review the deterministic security score and evidence coverage.';
+  const aiStatus=document.getElementById('ai-briefing-status');
+  if(aiStatus){ aiStatus.textContent=ai.available?'AMAZON BEDROCK · GENERATED':'AI UNAVAILABLE · RULE-BASED FALLBACK'; aiStatus.classList.toggle('is-active',Boolean(ai.available)); }
+  const summary=document.getElementById('report-security-summary'); if(summary) summary.textContent=`${report.summary} The AI explanation does not change the security score.`;
+
+  if(factorsSection){
+    const factorSpecs=[
+      ['ssl','TLS / Certificate Security',report.ssl],
+      ['domain','Domain Intelligence',report.domain],
+      ['httpSecurity','HTTP Security',report.http],
+      ['reputation','Reputation Intelligence',report.reputation],
+      ['content','Content Analysis',report.content],
+    ];
+    const rowNodes=[...factorsSection.querySelectorAll(':scope > div:nth-child(2) > div')].filter(n=>n.querySelector('.font-title-md'));
+    factorSpecs.forEach(([key,label,data],i)=>{
+      const row=rowNodes[i]; if(!row) return;
+      const title=row.querySelector('.font-title-md'); if(title) title.textContent=label;
+      const detail=row.querySelector('.font-body-sm'); if(detail) detail.textContent=compactEvidenceSummary(key,data);
+      const raw=report.factors?.[key];
+      const strength=raw===null||raw===undefined?null:Number(raw);
+      const scoreNode=row.querySelector('.font-mono.font-bold'); if(scoreNode) scoreNode.textContent=strength===null||!Number.isFinite(strength)?'N/A':`${strength} / 100`;
+      const bar=row.querySelector('[style*="width:"]'); if(bar){bar.style.width=`${strength===null?0:Math.max(0,Math.min(100,strength))}%`;bar.setAttribute('aria-label',`${label} security strength ${strength===null?'unavailable':strength}`);}
+      const badge=row.children[2]?.querySelector(':scope > span');
+      if(badge){
+        const tone=strength===null||!Number.isFinite(strength)?'unknown':strength>=85?'strong':strength>=70?'good':strength>=50?'moderate':'critical-risk';
+        badge.textContent=tone==='unknown'?'UNAVAILABLE':tone==='critical-risk'?'NEEDS REVIEW':tone.toUpperCase();
+        badge.classList.remove('dg-factor-status--strong','dg-factor-status--good','dg-factor-status--moderate','dg-factor-status--critical-risk','dg-factor-status--unknown');
+        badge.classList.add(`dg-factor-status--${tone}`);
+      }
+    });
+    const behaviorRow=rowNodes[5];
+    if(behaviorRow){
+      const title=behaviorRow.querySelector('.font-title-md'); if(title) title.textContent='Response Behaviour';
+      const detail=behaviorRow.querySelector('.font-body-sm');
+      if(detail){
+        const redirects=Array.isArray(report.http?.redirects)?report.http.redirects.length:Number(report.http?.redirectCount||0);
+        const finalUrl=report.http?.finalUrl?new URL(report.http.finalUrl).hostname:'unknown host';
+        detail.textContent=`HTTP ${report.http?.status ?? 'status unavailable'} · ${redirects} redirects · final host ${finalUrl}${report.http?.httpsRedirected?' · HTTP upgraded to HTTPS':''}.`;
+      }
+      const descriptor=behaviorRow.querySelector('.flex.justify-between > span:first-child'); if(descriptor) descriptor.textContent='RESPONSE TELEMETRY';
+      const scoreNode=behaviorRow.querySelector('.font-mono.font-bold'); if(scoreNode) scoreNode.textContent=report.http?.available?'OBSERVED':'N/A';
+      const track=behaviorRow.querySelector('[style*="width:"]')?.parentElement; if(track) track.hidden=true;
+      const badge=behaviorRow.children[2]?.querySelector(':scope > span'); if(badge) badge.textContent=report.http?.available?'OBSERVED':'UNAVAILABLE';
+    }
+  }
+  if(verdictSection){
+    const cards=[...verdictSection.querySelectorAll('.grid > div')];
+    const lists=[ai.positives,ai.concerns,ai.recommendations];
+    cards.forEach((card,i)=>{const ul=card.querySelector('ul');if(ul)textList(ul,lists[i]||[],'flex items-start gap-space-sm');const count=card.querySelector('.font-mono.font-semibold');if(count)count.textContent=`${(lists[i]||[]).length} ITEMS`;});
+    const intro=verdictSection.querySelector('.max-w-3xl');if(intro)intro.textContent=ai.verdict;
+    const mark=verdictSection.querySelector('.self-start');if(mark)mark.textContent=ai.available?'BEDROCK EXPLANATION':'RULE-BASED REPORT';
+    const heading=[...verdictSection.querySelectorAll('div')].find(n=>n.classList.contains('font-label-sm')&&n.textContent?.includes('AI-POWERED INTELLIGENCE REPORT'));
+    if(heading) heading.textContent=ai.available?'BEDROCK-POWERED SECURITY ANALYSIS':'EVIDENCE-BASED SECURITY ANALYSIS';
+  }
+  if(evidenceSection){
+    const payloads=[report.ssl,report.domain,report.http,report.content,{available:false,note:'Privacy policy and contact ownership are not independently verified by this scan.'},report.reputation,{findings:report.findings,limitations:report.limitations,ai}];
+    evidenceSection.querySelectorAll('.accordion-content').forEach((content,i)=>{content.replaceChildren();const pre=document.createElement('pre');pre.className='whitespace-pre-wrap break-words text-xs leading-relaxed';pre.textContent=JSON.stringify(payloads[i]||{},null,2);content.appendChild(pre);});
+    evidenceSection.querySelectorAll('.accordion-trigger').forEach(trigger=>{const right=trigger.children[1];if(right)right.textContent='LIVE EVIDENCE';});
+  }
+  if(finalSection){
+    finalSection.querySelectorAll('input[type=checkbox]').forEach(input=>input.closest('label')?.remove());
+    const paragraph=finalSection.querySelector('.lg\\:col-span-8 > p');
+    if(paragraph) paragraph.textContent=report.summary;
+    const status=finalSection.querySelector('.lg\\:col-span-8 > div.inline-flex');
+    if(status) status.textContent=`OVERALL SECURITY STATUS: ${security.label} · SECURITY SCORE ${security.score===null?'—':security.score+'/100'}`;
+  }
+}
+
+async function loadLiveReport(scanId) {
+  const notice=document.querySelector('#report-demo-notice > div'); if(notice)notice.textContent='LIVE REPORT · Loading evidence from the scan service…';
+  const reportBody=document.querySelector('main > div:last-child'); if(reportBody)reportBody.hidden=true;
+  try {
+    const response=await fetch(`${API_BASE_URL}/api/scans/${encodeURIComponent(scanId)}/report`,{cache:'no-store',signal:AbortSignal.timeout(20000)});
+    const data=await response.json();
+    if(response.status===409) throw new Error('This scan is still processing. Return to the scanner and wait for completion.');
+    if(!response.ok) throw new Error(data?.error?.message||`Unable to load report (${response.status}).`);
+    renderLiveReport(data);
+    if(reportBody)reportBody.hidden=false;
+  } catch(error) {
+    if(notice)notice.textContent=`LIVE REPORT ERROR · ${error instanceof Error?error.message:'Unable to load scan results.'}`;
+  }
+}
+
+function initReportAccordionControls() {
+  const container = document.getElementById('accordionContainer');
+  if (!container) return;
+
+  const triggers = [...container.querySelectorAll('.accordion-trigger')];
+  const setExpanded = (trigger, expanded) => {
+    const content = trigger.nextElementSibling;
+    if (!content?.classList.contains('accordion-content')) return;
+
+    // Keep both Tailwind's utility class and the native hidden state in sync.
+    content.classList.toggle('hidden', !expanded);
+    content.hidden = !expanded;
+    trigger.setAttribute('aria-expanded', String(expanded));
+    trigger.querySelector('.accordion-icon')?.classList.toggle('rotate-90', expanded);
   };
 
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    let target;
-    try {
-      target = normalizeTarget(input?.value);
-    } catch (error) {
-      showInlineError(error.message);
-      input?.focus();
-      return;
-    }
+  triggers.forEach((trigger, index) => {
+    const content = trigger.nextElementSibling;
+    if (!content?.classList.contains('accordion-content')) return;
 
-    const scan = {
-      url: target.href,
-      hostname: target.hostname,
-      submittedAt: new Date().toISOString(),
-      mode: 'demo',
-    };
-    sessionStorage.setItem('dg-current-scan', JSON.stringify(scan));
-
-    const error = document.getElementById('scan-url-error');
-    error?.remove();
-    if (inputContainer) inputContainer.classList.add('hidden');
-    if (chamber) chamber.classList.remove('hidden');
-    if (heading) {
-      heading.innerHTML = 'Analyzing <span class="italic text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-fixed to-tertiary">Digital Footprint...</span>';
-    }
-    if (eyebrow) eyebrow.textContent = 'DEMO SCAN IN PROGRESS';
-    if (description) description.textContent = 'Running the frontend demonstration sequence. Live certificate, domain, reputation and AI checks will be connected through the backend.';
-    if (activeTarget) activeTarget.textContent = target.href;
-    if (progressBar) progressBar.style.width = '0%';
-    if (percentageText) percentageText.textContent = '0%';
-    if (stageStatus) stageStatus.textContent = 'Starting demo sequence...';
-    if (completedAction) completedAction.classList.add('hidden');
-
-    const stages = [
-      { id: 'stage-1', text: 'Preparing website target...', duration: 520 },
-      { id: 'stage-2', text: 'Certificate inspection step...', duration: 580 },
-      { id: 'stage-3', text: 'Domain intelligence step...', duration: 600 },
-      { id: 'stage-4', text: 'Website content extraction step...', duration: 640 },
-      { id: 'stage-5', text: 'Reputation lookup step...', duration: 600 },
-      { id: 'stage-6', text: 'Suspicious pattern analysis step...', duration: 660 },
-      { id: 'stage-7', text: 'AI assessment step...', duration: 680 },
-      { id: 'stage-8', text: 'Preparing the sample report...', duration: 560 },
-    ];
-
-    let currentStep = 0;
-    const runNextStage = () => {
-      if (currentStep >= stages.length) {
-        if (progressBar) progressBar.style.width = '100%';
-        if (percentageText) percentageText.textContent = '100%';
-        if (stageStatus) stageStatus.textContent = 'Demo sequence complete · Opening report';
-        if (completedAction) completedAction.classList.remove('hidden');
-        window.setTimeout(() => { window.location.href = '/report/'; }, 950);
-        return;
-      }
-
-      const stage = stages[currentStep];
-      const element = document.getElementById(stage.id);
-      setStageState(element, 'active');
-      if (stageStatus) stageStatus.textContent = stage.text;
-      const progress = Math.round(((currentStep + 1) / stages.length) * 100);
-      if (progressBar) progressBar.style.width = `${progress}%`;
-      if (percentageText) percentageText.textContent = `${progress}%`;
-
-      window.setTimeout(() => {
-        setStageState(element, 'done');
-        currentStep += 1;
-        runNextStage();
-      }, stage.duration);
-    };
-    runNextStage();
+    if (!trigger.id) trigger.id = `evidence-trigger-${index + 1}`;
+    if (!content.id) content.id = `evidence-panel-${index + 1}`;
+    trigger.setAttribute('aria-controls', content.id);
+    setExpanded(trigger, !content.classList.contains('hidden') && !content.hidden);
+    trigger.addEventListener('click', () => {
+      setExpanded(trigger, trigger.getAttribute('aria-expanded') !== 'true');
+    });
   });
+
+  const setAll = (expanded) => triggers.forEach((trigger) => setExpanded(trigger, expanded));
+  document.getElementById('expandAllBtn')?.addEventListener('click', () => setAll(true));
+  document.getElementById('collapseAllBtn')?.addEventListener('click', () => setAll(false));
 }
 
 function initReport() {
   const reportRoot = document.querySelector('[data-page="report"]');
   if (!reportRoot) return;
 
+  // Wire interactions before the live-report branch returns. Live reports use
+  // ?scanId=..., so initializing these controls later leaves their accordions inert.
+  initReportAccordionControls();
+
+  const requestedScanId = new URLSearchParams(location.search).get('scanId');
+  if (requestedScanId) { if (API_BASE_URL) loadLiveReport(requestedScanId); else { const notice=document.querySelector('#report-demo-notice > div'); if(notice) notice.textContent='LIVE REPORT ERROR · Configure the API base URL to load scan results.'; } return; }
   const scan = safeReadScan();
   const displayHost = scan?.hostname || 'example.com';
   const displayUrl = scan?.url || 'https://example.com/';
@@ -343,28 +636,6 @@ function initReport() {
     });
   });
 
-  document.querySelectorAll('.accordion-trigger').forEach((trigger) => {
-    trigger.addEventListener('click', () => {
-      const content = trigger.nextElementSibling;
-      const icon = trigger.querySelector('.accordion-icon');
-      const opening = content?.classList.contains('hidden');
-      content?.classList.toggle('hidden', !opening);
-      icon?.classList.toggle('rotate-90', Boolean(opening));
-      trigger.setAttribute('aria-expanded', String(Boolean(opening)));
-    });
-  });
-
-  document.getElementById('expandAllBtn')?.addEventListener('click', () => {
-    document.querySelectorAll('.accordion-content').forEach((content) => content.classList.remove('hidden'));
-    document.querySelectorAll('.accordion-icon').forEach((icon) => icon.classList.add('rotate-90'));
-    document.querySelectorAll('.accordion-trigger').forEach((trigger) => trigger.setAttribute('aria-expanded', 'true'));
-  });
-
-  document.getElementById('collapseAllBtn')?.addEventListener('click', () => {
-    document.querySelectorAll('.accordion-content').forEach((content) => content.classList.add('hidden'));
-    document.querySelectorAll('.accordion-icon').forEach((icon) => icon.classList.remove('rotate-90'));
-    document.querySelectorAll('.accordion-trigger').forEach((trigger) => trigger.setAttribute('aria-expanded', 'false'));
-  });
 }
 
 

@@ -4,3 +4,28 @@ dist
 .env
 .env.*
 !.env.example
+
+.aws-sam/
+backend/.build/
+
+# AWS credentials and local configuration
+.aws/
+**/.aws/
+**/.aws-sam/
+**/.build/
+**/.env
+**/.env.*
+
+# Generated files
+**/node_modules/
+**/dist/
+.DS_Store
+*.log
+
+# Temporary integration backups and patches
+*.gemini-backup
+*.bedrock-backup
+*.backup
+*.zip
+apply-gemini-patch.py
+bedrock-gemini-replacement.ts
