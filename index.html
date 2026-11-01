@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -72,38 +73,7 @@
 <div class="absolute bottom-10 -left-20 w-[40rem] h-[40rem] rounded-full bg-purple-950/25 blur-[160px]"></div>
 </div>
 <!-- Minimal Transparent Navbar -->
-<header class="fixed top-0 left-0 right-0 z-50 glass-nav border-b border-white/5 transition-all">
-<div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-<!-- Brand Logo -->
-<a class="flex items-center gap-3 group" href="#">
-<div class="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-300 group-hover:scale-105 group-hover:border-purple-400/40 transition-all shadow-[0_0_15px_rgba(192,132,252,0.15)]">
-<span class="material-symbols-outlined text-2xl">ghost</span>
-</div>
-<span class="font-display font-bold tracking-widest text-sm uppercase text-white/90 group-hover:text-white transition-colors">
-        DIGITAL GRAVEYARD
-      </span>
-</a>
-<!-- Center Links -->
-<nav class="hidden md:flex items-center gap-8 text-sm font-medium text-white/60">
-<a class="text-white hover:text-white transition-colors" href="#">Home</a>
-<a class="hover:text-white transition-colors" href="#how-it-works">How It Works</a>
-<a class="hover:text-white transition-colors" href="#features">Features</a>
-</nav>
-<!-- Right CTAs & Indicator -->
-<div class="flex items-center gap-4">
-<div class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/10">
-<span class="relative flex h-2 w-2">
-<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-</span>
-<span class="font-mono text-xs text-white/70 uppercase tracking-wider font-medium">AI POWERED</span>
-</div>
-<a class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-white text-[#09090F] hover:bg-white/90 font-medium text-xs tracking-wider uppercase transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-95" href="/scan">
-        Start Scanning
-      </a>
-</div>
-</div>
-</header>
+<header class="dg-site-header" data-shared-header aria-label="Site header"></header>
 <main class="relative z-10 pt-24">
 <!-- ==================== HERO SECTION ==================== -->
 <section class="max-w-7xl mx-auto px-6 pt-16 pb-24 lg:pt-24 lg:pb-32">
@@ -147,25 +117,25 @@
           </span>
 </div>
 </div>
-<!-- Right Column: Genuine 3D Three.js Scene Component -->
-<div class="lg:col-span-6 relative flex items-center justify-center min-h-[480px] lg:min-h-[580px] w-full">
-<!-- Subtle Glow Halo behind 3D Canvas -->
-<div class="absolute w-80 h-80 rounded-full bg-purple-600/20 blur-[100px] pointer-events-none"></div>
-<div class="absolute -bottom-8 right-12 w-64 h-64 rounded-full bg-orange-500/15 blur-[90px] pointer-events-none"></div>
-<!-- Embedded Three.js Scene Component -->
-<!-- STITCH_THREEJS_START:ANIMATION_17 class="w-full h-[580px] bg-transparent relative z-10" -->
-<div class="w-full h-[580px] bg-transparent relative z-10" style="display:block;">
-
-<div id="threejs-container-ANIMATION_17" style="width:100%;height:100%"></div>
-
-</div>
-<!-- STITCH_THREEJS_END:ANIMATION_17 -->
+<!-- Right Column: Transparent Halloween cutout artwork -->
+<div class="lg:col-span-6 relative flex items-center justify-center w-full">
+  <div class="dg-hero-art-stage dg-art-reveal" aria-label="Halloween artwork featuring a ghost and jack-o’-lantern">
+    <div class="dg-hero-aura dg-hero-aura-purple" aria-hidden="true"></div>
+    <div class="dg-hero-aura dg-hero-aura-orange" aria-hidden="true"></div>
+    <img class="dg-hero-branch dg-float-slow" src="/images/tree-lantern-cutout.png" alt="" aria-hidden="true" loading="eager" decoding="async" />
+    <img class="dg-hero-ghost dg-float" src="/images/ghost-cutout.png" alt="A tattered ghost with glowing violet eyes floating in purple mist" fetchpriority="high" decoding="async" />
+    <img class="dg-hero-pumpkin dg-float-delayed" src="/images/pumpkin-cutout.png" alt="A detailed glowing jack-o’-lantern with curling vines" fetchpriority="high" decoding="async" />
+    <img class="dg-hero-raven dg-float-slow" src="/images/raven-cutout.png" alt="" aria-hidden="true" loading="eager" decoding="async" />
+    <div class="dg-art-caption dg-caption-ghost"><span class="dg-caption-dot"></span> THE UNKNOWN</div>
+    <div class="dg-art-caption dg-caption-pumpkin"><span class="dg-caption-dot dg-dot-orange"></span> THE THREAT</div>
+  </div>
 </div>
 </div>
 </section>
 <!-- ==================== THREE STEPS. ONE INVESTIGATION. ==================== -->
 <section class="max-w-7xl mx-auto px-6 py-28 border-t border-white/5" id="how-it-works">
-<div class="flex flex-col items-start gap-4 mb-20">
+<div class="flex flex-col items-start gap-4 mb-20 relative dg-section-intro">
+<img class="dg-section-raven dg-float-slow dg-art-reveal" src="/images/raven-cutout.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
 <span class="text-xs font-mono uppercase tracking-[0.2em] text-purple-400">INVESTIGATION PROTOCOL</span>
 <h2 class="font-display text-3xl sm:text-5xl font-bold tracking-tight text-white">
         Three Steps. One Investigation.
@@ -226,10 +196,12 @@
 </div>
 </section>
 <!-- ==================== FEATURES SECTION ==================== -->
-<section class="max-w-7xl mx-auto px-6 py-28 border-t border-white/5" id="features">
+<section class="max-w-7xl mx-auto px-6 py-28 border-t border-white/5 relative dg-features-section" id="features">
+<img class="dg-features-tree dg-float-slow dg-art-reveal" src="/images/tree-lantern-cutout.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
 <!-- Section Intro -->
-<div class="lg:col-span-5 flex flex-col items-start gap-5">
+<div class="lg:col-span-5 flex flex-col items-start gap-5 relative dg-feature-intro">
+<img class="dg-feature-skull dg-art-reveal" src="/images/skull-candle-cutout.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
 <span class="text-xs font-mono uppercase tracking-[0.2em] text-purple-400">SURGICAL INTELLIGENCE</span>
 <h2 class="font-display text-3xl sm:text-5xl font-bold tracking-tight text-white leading-tight">
           Look Beyond <br class="hidden sm:block"/>the Surface.
@@ -311,7 +283,9 @@
 </section>
 <!-- ==================== CLOSING CTA SECTION ==================== -->
 <section class="max-w-7xl mx-auto px-6 py-28 border-t border-white/5 relative">
-<div class="relative rounded-3xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] p-12 sm:p-20 text-center flex flex-col items-center gap-8 overflow-hidden border border-white/5">
+<div class="relative rounded-3xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] p-12 sm:p-20 text-center flex flex-col items-center gap-8 overflow-hidden border border-white/5 dg-cta-art">
+<img class="dg-cta-tombstone dg-art-reveal" src="/images/tombstone-cutout.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+<img class="dg-cta-skull dg-float-slow dg-art-reveal" src="/images/skull-candle-cutout.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
 <!-- Glow ambient background -->
 <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-purple-600/20 rounded-full blur-[130px] pointer-events-none"></div>
 <span class="text-xs font-mono uppercase tracking-[0.2em] text-orange-400 relative z-10">FINAL VERDICT</span>
@@ -332,42 +306,7 @@
 </section>
 </main>
 <!-- ==================== MINIMAL FOOTER ==================== -->
-<footer class="relative z-10 border-t border-white/5 py-16 bg-[#09090F]">
-<div class="max-w-7xl mx-auto px-6 flex flex-col gap-12">
-<!-- Top Row: Brand & Links -->
-<div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-<!-- Logo -->
-<a class="flex items-center gap-3 group" href="#">
-<div class="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-300">
-<span class="material-symbols-outlined text-xl">ghost</span>
-</div>
-<span class="font-display font-bold tracking-widest text-xs uppercase text-white/80">
-          DIGITAL GRAVEYARD
-        </span>
-</a>
-<!-- Links -->
-<nav class="flex flex-wrap items-center gap-8 text-xs font-mono text-white/50">
-<a class="hover:text-white transition-colors" href="#">Home</a>
-<a class="hover:text-white transition-colors" href="#how-it-works">How It Works</a>
-<a class="hover:text-white transition-colors" href="#features">Features</a>
-<a class="hover:text-white transition-colors" href="/scan">Scanner</a>
-<a class="hover:text-white transition-colors flex items-center gap-1" href="https://github.com" rel="noopener noreferrer" target="_blank">
-<span>GitHub</span>
-<span class="material-symbols-outlined text-xs">north_east</span>
-</a>
-</nav>
-</div>
-<!-- Bottom Row: Security Disclaimer & Copyright -->
-<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-6 border-t border-white/5 text-xs text-white/40">
-<p class="max-w-xl font-light">
-        A risk assessment is not a guarantee of website safety or maliciousness. For professional security intelligence.
-      </p>
-<p class="font-mono">
-        © 2026 DIGITAL GRAVEYARD. ALL RIGHTS RESERVED.
-      </p>
-</div>
-</div>
-</footer>
-<!-- Web Component Definition for Three.js Scene -->
+<footer class="dg-site-footer" data-shared-footer aria-label="Site footer"></footer>
+<!-- Landing page decorative artwork uses transparent PNG cutouts. -->
 
-<script src="/src/app.js" type="module"></script><script src="/src/landing-scene.js" type="module"></script></body></html>
+<script src="/src/app.js" type="module"></script></body></html>

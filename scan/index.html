@@ -155,36 +155,7 @@
 <div class="absolute -bottom-32 left-1/2 -translate-x-1/2 w-[48rem] h-[28rem] rounded-full bg-purple-950/20 blur-[160px]"></div>
 </div>
 <!-- Header / Navigation Bar -->
-<header class="fixed top-0 left-0 right-0 z-50 bg-[#08080d]/85 backdrop-blur-2xl border-b border-primary/15 shadow-[0_4px_30px_rgba(0,0,0,0.85)]">
-<div class="h-20 w-full max-w-7xl mx-auto px-6 sm:px-10 flex items-center justify-between gap-4">
-<div class="flex items-center gap-8">
-<a class="flex items-center gap-3 group" data-path="home" href="#">
-<img alt="Digital Graveyard Logo" class="h-8 w-auto object-contain drop-shadow-[0_0_8px_rgba(221,183,255,0.4)]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_1NP06PY8uwSAEoA6W0ULf622sTk3WCpONPWQ1dcrEk_LBN2duY7N9hoGMZmvi2typasi2pmxSRkDcGnTt27Z1wUnstUUP28gniKyzqwX-wjNL6xv_NRRr_vlLa9DivJ678uFgx2iOOl1n8WuPo3NiGDqvSB9EM6FC2jDwvBFTKJCo_bv0xwjyl-p8l5ubOiKpBt0SbaZo8c8tafNmzTNGscddnx4ptT7IbHO_I03"/>
-<span class="font-cinzel uppercase font-bold tracking-[0.18em] text-primary text-[15px] drop-shadow-[0_0_12px_rgba(221,183,255,0.4)] group-hover:text-primary-fixed transition-all">DIGITAL GRAVEYARD</span>
-</a>
-<nav class="hidden xl:flex items-center gap-1.5 p-1" data-active-classes="bg-surface-container-high text-primary font-bold rounded-lg">
-<a class="px-4 py-2 text-on-surface-variant hover:text-on-surface font-label-md text-xs uppercase tracking-wider transition-colors" data-path="home" href="#">Home</a>
-<a aria-current="page" class="px-4 py-2 uppercase tracking-wider text-xs font-label-md transition-colors bg-surface-container-high text-primary font-bold rounded-lg shadow-[0_0_12px_rgba(183,109,255,0.15)]" data-path="scanner" href="#">Scanner</a>
-<a class="px-4 py-2 text-on-surface-variant hover:text-on-surface font-label-md text-xs uppercase tracking-wider transition-colors" data-path="analysis-report" href="#">Analysis Report</a>
-<a class="px-4 py-2 text-on-surface-variant hover:text-on-surface font-label-md text-xs uppercase tracking-wider transition-colors" data-path="how-it-works" href="#">How It Works</a>
-<a class="px-4 py-2 text-on-surface-variant hover:text-on-surface font-label-md text-xs uppercase tracking-wider transition-colors" data-path="threat-matrix" href="#">Threat Matrix</a>
-</nav>
-</div>
-<div class="flex items-center gap-4">
-<div class="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-container/80 border border-tertiary/25 backdrop-blur-md shadow-[0_0_12px_rgba(74,225,118,0.12)]">
-<span class="relative flex h-2 w-2">
-<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
-<span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary"></span>
-</span>
-<span class="font-label-sm text-[11px] text-tertiary uppercase tracking-wider font-semibold">AI SCANNER ONLINE</span>
-</div>
-<a class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-primary-container to-primary text-on-primary-container font-label-md text-xs font-bold uppercase tracking-wider shadow-[0_0_16px_rgba(183,109,255,0.4)] hover:shadow-[0_0_24px_rgba(183,109,255,0.7)] hover:brightness-110 active:scale-[0.98] transition-all" data-path="scanner" href="#">SCAN A WEBSITE</a>
-<div class="w-8 h-8 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center shrink-0">
-<span class="material-symbols-outlined text-primary text-[18px]">person</span>
-</div>
-</div>
-</div>
-</header>
+<header class="dg-site-header" data-shared-header aria-label="Site header"></header>
 <!-- Main Scanner Layout (Strictly minimal, distraction-free, generous whitespace) -->
 <main class="relative z-10 w-full pt-36 sm:pt-44 pb-20 flex-1 flex flex-col items-center justify-center">
 <div class="relative z-20 w-full max-w-4xl mx-auto px-6 sm:px-8 flex flex-col items-center text-center">
@@ -373,48 +344,7 @@
 </div>
 </main>
 <!-- Footer -->
-<footer class="relative z-20 w-full bg-[#06060a]/95 border-t border-primary/15 pt-12 pb-8 text-on-surface-variant">
-<div class="w-full max-w-7xl mx-auto px-6 sm:px-10">
-<div class="grid grid-cols-1 md:grid-cols-12 gap-8 pb-10 border-b border-outline-variant/20">
-<div class="md:col-span-5 space-y-3">
-<div class="flex items-center gap-3">
-<img alt="Digital Graveyard Logo" class="h-7 w-auto object-contain drop-shadow-[0_0_8px_rgba(221,183,255,0.4)]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_1NP06PY8uwSAEoA6W0ULf622sTk3WCpONPWQ1dcrEk_LBN2duY7N9hoGMZmvi2typasi2pmxSRkDcGnTt27Z1wUnstUUP28gniKyzqwX-wjNL6xv_NRRr_vlLa9DivJ678uFgx2iOOl1n8WuPo3NiGDqvSB9EM6FC2jDwvBFTKJCo_bv0xwjyl-p8l5ubOiKpBt0SbaZo8c8tafNmzTNGscddnx4ptT7IbHO_I03"/>
-<span class="font-cinzel uppercase font-bold tracking-[0.16em] text-primary text-sm drop-shadow-[0_0_10px_rgba(221,183,255,0.4)]">DIGITAL GRAVEYARD</span>
-</div>
-<p class="text-body-sm text-xs text-on-surface-variant/80 max-w-md leading-relaxed">
-          AI-driven threat intelligence uncovering hidden vulnerabilities, cursed signals, and deceptive patterns buried across the digital realm.
-        </p>
-<div class="flex items-center gap-2 pt-1">
-<span class="font-label-sm text-[11px] text-tertiary flex items-center gap-1.5">
-<span class="h-1.5 w-1.5 rounded-full bg-tertiary inline-block"></span>
-            CONTAINMENT PROTOCOL: ACTIVE
-          </span>
-</div>
-</div>
-<div class="md:col-span-3 space-y-2">
-<h3 class="font-label-md text-xs uppercase tracking-wider text-on-surface font-semibold">Platform</h3>
-<ul class="space-y-1.5 font-body-sm text-xs">
-<li><a class="hover:text-primary transition-colors" data-path="home" href="#">Home Overview</a></li>
-<li><a class="text-primary font-medium" data-path="scanner" href="#">Forensic Scanner</a></li>
-<li><a class="hover:text-primary transition-colors" data-path="analysis-report" href="#">Analysis Report</a></li>
-<li><a class="hover:text-primary transition-colors" data-path="threat-matrix" href="#">Threat Matrix</a></li>
-</ul>
-</div>
-<div class="md:col-span-4 space-y-2">
-<h3 class="font-label-md text-xs uppercase tracking-wider text-on-surface font-semibold">Security Protocols</h3>
-<ul class="space-y-1.5 font-body-sm text-xs">
-<li><a class="hover:text-primary transition-colors" data-path="how-it-works" href="#">Engine Architecture &amp; Heuristics</a></li>
-<li><a class="hover:text-primary transition-colors" href="#">Spectral API Reference</a></li>
-<li><a class="hover:text-primary transition-colors" href="#">Air-gapped Sandbox Safety</a></li>
-</ul>
-</div>
-</div>
-<div class="pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left text-xs text-outline/70">
-<p class="font-body-sm">A risk assessment is not a guarantee of website safety or maliciousness. For professional security intelligence.</p>
-<p class="font-label-sm tracking-wider">© 2026 DIGITAL GRAVEYARD. ALL RIGHTS RESERVED.</p>
-</div>
-</div>
-</footer>
+<footer class="dg-site-footer" data-shared-footer aria-label="Site footer"></footer>
 <!-- Interactive Cybersecurity Scanner Radar Engine -->
 
 <script src="/src/app.js" type="module"></script></body></html>

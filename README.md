@@ -1,10 +1,10 @@
 # Digital Graveyard — Frontend
 
-A static, deployable three-page frontend for the Digital Graveyard AI website-risk analyzer. The original Stitch page layouts are retained and their navigation and interactions have been connected.
+A static, deployable three-page frontend for the Digital Graveyard AI website-risk analyzer. The original Stitch page layouts are retained, with connected navigation, scroll reveals, and background-free Halloween artwork across the landing page.
 
 ## Pages
 
-- `/` — Landing page with procedural real-time Three.js ghost, pumpkin and vampire meshes.
+- `/` — Landing page with scroll-triggered reveals and layered transparent PNG cutouts (ghost, pumpkin, raven, skull, tombstone and lantern/tree).
 - `/scan/` — URL entry and staged scan-flow demonstration.
 - `/report/` — Investigation report UI with expandable evidence sections and print-to-PDF support.
 
@@ -52,10 +52,16 @@ Content-Type: application/json
 
 Return a scan result containing a scan ID, evidence, factor scores, risk level and AI explanation. Then populate `/report/` from that result instead of the demo fixture values. Keep AWS credentials and Bedrock model calls on your backend; never expose AWS keys in browser code.
 
-## 3D scene
+## Landing page imagery and motion
 
-The Halloween characters are real Three.js procedural meshes generated in `src/landing-scene.js`, not still images. The scene is only loaded on the landing page. Three.js is imported from jsDelivr, while the Stitch styling uses Tailwind CDN, Google Fonts and Material Symbols CDN; an internet connection is required for these external resources.
+The landing page uses independent background-free PNG cutouts stored in `images/`: ghost, pumpkin, raven, tombstone, tree/lantern, and skull/candle. Each asset is a transparent image layered over the site's own dark background; there are no rectangular image backgrounds and no Three.js scene. The artwork is positioned responsively throughout the hero, process, feature, and closing sections.
+
+IntersectionObserver-based scroll reveals use a restrained fade, lift and blur transition with staggered timing. Decorative artwork uses gentle CSS floating motion. Both effects respect the user's reduced-motion preference and are confined to the landing page.
 
 ## Report export
 
 The report's Download buttons open the browser print dialog. Choose **Save as PDF** to export.
+
+## Shared header and footer
+
+All three routes use the same fixed, responsive header with the Digital Graveyard logo lockup, route navigation, online indicator, and scan CTA. On smaller screens the navigation collapses into an accessible menu button. The same footer appears on every route. The Platform and Security Protocols link columns shown in the reference screenshot have been removed, while the footer itself remains: it includes the homepage link, a live URL that is populated from the current site origin, the security-assessment disclaimer, the GitHub repository link, and the copyright notice. The URL therefore updates automatically on localhost, preview deployments, and the production domain.
