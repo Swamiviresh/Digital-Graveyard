@@ -467,7 +467,7 @@ function renderLiveReport(report) {
   const safetyAssessment=document.getElementById('ai-safety-assessment');
   if(safetyAssessment) safetyAssessment.textContent=ai.safetyAssessment || 'An AI safety assessment was not returned. Review the deterministic security score and evidence coverage.';
   const aiStatus=document.getElementById('ai-briefing-status');
-  if(aiStatus){ aiStatus.textContent=ai.available?'AMAZON BEDROCK · GENERATED':'AI UNAVAILABLE · RULE-BASED FALLBACK'; aiStatus.classList.toggle('is-active',Boolean(ai.available)); }
+  if(aiStatus){ aiStatus.textContent=ai.available?'AI-POWERED · GENERATED':'AI UNAVAILABLE · RULE-BASED FALLBACK'; aiStatus.classList.toggle('is-active',Boolean(ai.available)); }
   const summary=document.getElementById('report-security-summary'); if(summary) summary.textContent=`${report.summary} The AI explanation does not change the security score.`;
 
   if(factorsSection){
@@ -515,9 +515,9 @@ function renderLiveReport(report) {
     const lists=[ai.positives,ai.concerns,ai.recommendations];
     cards.forEach((card,i)=>{const ul=card.querySelector('ul');if(ul)textList(ul,lists[i]||[],'flex items-start gap-space-sm');const count=card.querySelector('.font-mono.font-semibold');if(count)count.textContent=`${(lists[i]||[]).length} ITEMS`;});
     const intro=verdictSection.querySelector('.max-w-3xl');if(intro)intro.textContent=ai.verdict;
-    const mark=verdictSection.querySelector('.self-start');if(mark)mark.textContent=ai.available?'BEDROCK EXPLANATION':'RULE-BASED REPORT';
+    const mark=verdictSection.querySelector('.self-start');if(mark)mark.textContent=ai.available?'AI EXPLANATION':'RULE-BASED REPORT';
     const heading=[...verdictSection.querySelectorAll('div')].find(n=>n.classList.contains('font-label-sm')&&n.textContent?.includes('AI-POWERED INTELLIGENCE REPORT'));
-    if(heading) heading.textContent=ai.available?'BEDROCK-POWERED SECURITY ANALYSIS':'EVIDENCE-BASED SECURITY ANALYSIS';
+    if(heading) heading.textContent=ai.available?'AI-POWERED SECURITY ANALYSIS':'EVIDENCE-BASED SECURITY ANALYSIS';
   }
   if(evidenceSection){
     const payloads=[report.ssl,report.domain,report.http,report.content,{available:false,note:'Privacy policy and contact ownership are not independently verified by this scan.'},report.reputation,{findings:report.findings,limitations:report.limitations,ai}];
