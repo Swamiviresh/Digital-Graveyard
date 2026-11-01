@@ -1,0 +1,7 @@
+backend/
+frontend-hosting.yaml
+README.md
+.DS_Store
+*.backup
+*.gemini-backup
+*.bedrock-backup
