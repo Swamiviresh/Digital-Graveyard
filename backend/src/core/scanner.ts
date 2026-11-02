@@ -49,7 +49,7 @@ export async function runScan(
 
   const tls = await analyzeTls(tlsResponse, submittedHost, tlsConnectionError);
   const hostname = target.hostname.replace(/^\[|\]$/g, '');
-  const domain = await analyzeDomain(hostname);
+  const domain = await analyzeDomain(hostname, Boolean(tls.valid && tls.hostnameMatches));
   const http = analyzeHttp(response, target);
 
   await progress('Parsing bounded page content', 47);
@@ -62,25 +62,16 @@ export async function runScan(
   const reputation = await checkReputation(target.hostname);
   const findings: Finding[] = [
     ...(tls.findings || []),
+    ...(domain.findings || []),
     ...(http.findings || []),
     ...(content.findings || []),
     ...reputation.findings,
   ];
 
-  if (domain.available && domain.domainAgeYears !== null && Number(domain.domainAgeYears) < 0.25) {
-    findings.push(makeFinding(
-      'domain',
-      'medium',
-      'Recently registered domain',
-      'RDAP data indicates the domain was registered within the last 90 days.',
-      [String(domain.registeredAt)],
-      'Confirm the domain owner and use extra caution with account or payment actions.',
-      0.7,
-      'context',
-    ));
+  if (!domain.identityAvailable) {
+    limitations.push('RDAP registration identity evidence was unavailable; the registrant or business identity could not be assessed.');
   }
-
-  if (!domain.available) limitations.push('Domain registration or DNS evidence was unavailable.');
+  if (!domain.available) limitations.push('Domain DNS and registration evidence were unavailable.');
   if (!reputation.result.available) {
     const providers = Array.isArray(reputation.result.providers)
       ? reputation.result.providers as Array<{ reason?: string }>
@@ -95,7 +86,7 @@ export async function runScan(
   // Each factor is a strength score: 0 is weakest, 100 is strongest.
   const factors = {
     ssl: tls.available ? calculateFactorStrength(findings.filter(finding => finding.category === 'ssl')) : null,
-    domain: domain.available ? calculateFactorStrength(findings.filter(finding => finding.category === 'domain')) : null,
+    domain: domain.identityAvailable && typeof domain.identityStrength === 'number' ? domain.identityStrength : null,
     httpSecurity: http.available ? calculateFactorStrength(findings.filter(finding => finding.category === 'http')) : null,
     content: content.available ? calculateFactorStrength(findings.filter(finding => finding.category === 'content')) : null,
     reputation: reputation.result.available ? calculateFactorStrength(findings.filter(finding => finding.category === 'reputation')) : null,
