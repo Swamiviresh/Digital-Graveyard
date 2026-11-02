@@ -2,7 +2,7 @@ import { normalizeUrl, ScanInputError } from './url-safety.js';
 import { safeFetch } from './safe-fetch.js';
 import { analyzeContent, analyzeDomain, analyzeHttp, analyzeTls } from './analyzers.js';
 import { checkReputation } from './reputation.js';
-import { calculateFactorStrength, calculateSecurityScore, makeFinding, securityLevelLabel } from './scoring.js';
+import { calculateFactorStrength, calculateSecurityScore, securityLevelLabel } from './scoring.js';
 import { explainEvidence } from './bedrock.js';
 import type { EvidenceBundle, Finding, ScanReport } from './types.js';
 
