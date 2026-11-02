@@ -210,13 +210,34 @@ export function analyzeContent(html: string, baseUrl: string) {
   const credentialForms=forms.filter(f=>f.passwordFields>0);
   const pageTitle=(html.match(/<title[^>]*>([^<]*)/i)?.[1]||'').slice(0,200);
   const targetHost=new URL(baseUrl).hostname.toLowerCase();
-  const brands=['paypal','google','microsoft','apple','amazon','coinbase','binance','metamask','facebook','instagram','netflix','steam','chase','wise'];
-  const brandSignals=credentialForms.length?brands.filter(brand=>pageTitle.toLowerCase().includes(brand)&&!targetHost.includes(brand)):[];
+  const trustedBrandDomains:Record<string,string[]> = {
+    paypal:['paypal.com','paypal.in','paypal.co.uk'],
+    google:['google.com','google.co.in','google.co.uk'],
+    microsoft:['microsoft.com','live.com','office.com','outlook.com'],
+    apple:['apple.com','icloud.com'],
+    amazon:['amazon.com','amazon.in','amazon.co.uk','amazon.de'],
+    coinbase:['coinbase.com'],
+    binance:['binance.com'],
+    metamask:['metamask.io'],
+    facebook:['facebook.com'],
+    instagram:['instagram.com'],
+    netflix:['netflix.com'],
+    steam:['steampowered.com','steamcommunity.com'],
+    chase:['chase.com'],
+    wise:['wise.com'],
+  };
+  const isBrandDomain=(hostname:string,brand:string)=>(
+    trustedBrandDomains[brand]||[]
+  ).some(domain=>hostname===domain||hostname.endsWith(`.${domain}`));
+  const brands=Object.keys(trustedBrandDomains);
+  const brandSignals=credentialForms.length
+    ? brands.filter(brand=>pageTitle.toLowerCase().includes(brand)&&!isBrandDomain(targetHost,brand))
+    : [];
   const externalCredentialForms=credentialForms.filter(form=>{try{return new URL(form.action,baseUrl).origin!==new URL(baseUrl).origin;}catch{return false;}});
   const suspiciousCredentialDestinations=externalCredentialForms.filter(form=>{
     try{
       const destination=new URL(form.action,baseUrl).hostname.toLowerCase();
-      return !brandSignals.some(brand=>destination.includes(brand));
+      return !brandSignals.some(brand=>isBrandDomain(destination,brand));
     }catch{return true;}
   });
   if(credentialForms.length) findings.push(makeFinding('content','medium','Credential collection form detected','Password fields were found in the page markup; this is common on legitimate login pages and is not treated as proof of phishing.',credentialForms.map(f=>`Password inputs: ${f.passwordFields}; form action: ${f.action||'(same page)'}`),'Verify the operator and ensure credential submissions use an authorized endpoint.',0.5,'context'));
