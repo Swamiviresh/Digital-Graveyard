@@ -33,13 +33,130 @@ export function summarizeRdap(rdap:Record<string,unknown>|null, now=Date.now()) 
   const age=registeredAt?Math.max(0,(now-Date.parse(registeredAt))/(365.25*86400000)):null;
   return{registeredAt,expiresAt,registrar:name?.[3]?String(name[3]).slice(0,160):null,domainAgeYears:age===null?null:Math.round(age*10)/10};
 }
-export async function analyzeDomain(hostname: string) {
+
+export interface DomainIdentityEvidence {
+  rdapAvailable: boolean;
+  registeredAt: string | null;
+  expiresAt: string | null;
+  registrar: string | null;
+  nameserverCount: number;
+  dnssecEnabled: boolean;
+  statuses: string[];
+  certificateMatches: boolean;
+}
+
+/**
+ * Estimates strength of domain-identity signals, not the legal identity of the
+ * registrant. RDAP, DNS and a matching TLS certificate provide corroborating
+ * technical signals; none independently proves that a business is legitimate.
+ */
+export function assessDomainIdentity(evidence: DomainIdentityEvidence, now=Date.now()): number | null {
+  if (!evidence.rdapAvailable) return null;
+
+  let score = 35;
+  const registrationTime = evidence.registeredAt ? Date.parse(evidence.registeredAt) : NaN;
+  const expiryTime = evidence.expiresAt ? Date.parse(evidence.expiresAt) : NaN;
+  const ageYears = Number.isFinite(registrationTime)
+    ? Math.max(0, (now - registrationTime) / (365.25 * 86400000))
+    : null;
+  const normalizedStatuses = evidence.statuses.map(status => status.toLowerCase().replace(/[\\s_-]/g, ''));
+  const hasHoldStatus = normalizedStatuses.some(status =>
+    ['clienthold', 'serverhold', 'redemptionperiod', 'pendingdelete', 'inactive'].includes(status),
+  );
+  const hasActiveStatus = normalizedStatuses.some(status => status === 'active' || status === 'ok');
+
+  if (Number.isFinite(registrationTime)) score += 10;
+  if (evidence.registrar) score += 10;
+  if (evidence.nameserverCount > 0) score += 10;
+  if (hasActiveStatus) score += 5;
+  if (evidence.dnssecEnabled) score += 5;
+  if (evidence.certificateMatches) score += 15;
+
+  if (ageYears !== null) {
+    if (ageYears >= 5) score += 10;
+    else if (ageYears >= 2) score += 5;
+    else if (ageYears < 90 / 365.25) score -= 20;
+    else if (ageYears < 1) score -= 10;
+  }
+
+  if (hasHoldStatus) score -= 35;
+  if (Number.isFinite(expiryTime)) {
+    if (expiryTime < now) score -= 25;
+    else if (expiryTime - now < 30 * 86400000) score -= 5;
+  }
+
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+export async function analyzeDomain(hostname: string, certificateMatches = false) {
   const [a, aaaa, ns, mx, rdap] = await Promise.all([
     attempt(() => resolve4(hostname)), attempt(() => resolve6(hostname)), attempt(() => resolveNs(hostname)), attempt(() => resolveMx(hostname)),
     safeFetch(new URL(`https://rdap.org/domain/${encodeURIComponent(hostname)}`)).then(r => { try { return JSON.parse(r.body) as Record<string, unknown>; } catch { return null; } }).catch(() => null),
   ]);
   const rdapSummary=summarizeRdap(rdap);
-  return { available: Boolean(a || aaaa || ns || rdap), ...rdapSummary, ipv4: a || [], ipv6: aaaa || [], nameservers: ns || [], mailExchangers: mx || [], dnssec: rdap?.secureDNS || null, rdapAvailable: Boolean(rdap) };
+  const nameservers=ns||[];
+  const secureDNS = rdap?.secureDNS && typeof rdap.secureDNS === 'object'
+    ? rdap.secureDNS as Record<string, unknown>
+    : null;
+  const statuses=Array.isArray(rdap?.status)?rdap.status.map(String):[];
+  const dnssecEnabled=secureDNS?.delegationSigned===true;
+  const identityEvidence:DomainIdentityEvidence={
+    rdapAvailable:Boolean(rdap),
+    registeredAt:rdapSummary.registeredAt,
+    expiresAt:rdapSummary.expiresAt,
+    registrar:rdapSummary.registrar,
+    nameserverCount:nameservers.length,
+    dnssecEnabled,
+    statuses,
+    certificateMatches,
+  };
+  const identityStrength=assessDomainIdentity(identityEvidence);
+  const findings:Finding[]=[];
+  if(identityEvidence.rdapAvailable && rdapSummary.domainAgeYears!==null && rdapSummary.domainAgeYears<90/365.25){
+    findings.push(makeFinding('domain','medium','Very recently registered domain','RDAP registration data indicates that this domain was created within the last 90 days. Newness is a caution signal, not proof of maliciousness.',[String(rdapSummary.registeredAt)],'Independently verify the operator before entering credentials or making payments.',0.75,'context'));
+  } else if(identityEvidence.rdapAvailable && rdapSummary.domainAgeYears!==null && rdapSummary.domainAgeYears<1){
+    findings.push(makeFinding('domain','low','Recently registered domain','RDAP registration data indicates that this domain is less than one year old.',[String(rdapSummary.registeredAt)],'Use additional care with account and payment actions until the operator is established.',0.65,'context'));
+  }
+  const normalizedStatuses=statuses.map(status=>status.toLowerCase().replace(/[\\s_-]/g,''));
+  if(normalizedStatuses.some(status=>['clienthold','serverhold','redemptionperiod','pendingdelete','inactive'].includes(status))){
+    findings.push(makeFinding('domain','high','Domain registration status needs review','RDAP reports a hold, redemption, pending-delete or inactive status for this domain.',statuses,'Verify the domain registration status with the registrar before trusting the site.',0.9,'posture'));
+  }
+  const expiryTime=rdapSummary.expiresAt?Date.parse(rdapSummary.expiresAt):NaN;
+  if(Number.isFinite(expiryTime)&&expiryTime<Date.now()){
+    findings.push(makeFinding('domain','high','Domain registration appears expired','The RDAP expiration date is in the past. Registration status and current control should be independently checked.',[String(rdapSummary.expiresAt)],'Verify current registration and ownership status with the registrar.',0.85,'posture'));
+  }
+  const identityAssessment=!identityEvidence.rdapAvailable
+    ? 'RDAP registration records were unavailable; domain identity could not be assessed.'
+    : normalizedStatuses.some(status=>['clienthold','serverhold','redemptionperiod','pendingdelete','inactive'].includes(status))
+      ? 'RDAP reports a registration status that needs review.'
+      : rdapSummary.domainAgeYears!==null&&rdapSummary.domainAgeYears<90/365.25
+        ? 'The domain is newly registered. Treat this as a caution signal, not proof of maliciousness.'
+        : certificateMatches
+          ? 'RDAP registration data and a hostname-matching TLS certificate were observed. The registrant or business identity is not independently verified.'
+          : 'RDAP registration data was found. A matching TLS domain-control signal was not confirmed, and the registrant or business identity is not independently verified.';
+  return {
+    available:Boolean(a||aaaa||ns||rdap),
+    identityAvailable:Boolean(rdap),
+    identityStrength,
+    identityAssessment,
+    identitySignals:{
+      rdapRecord:Boolean(rdap),
+      registrationDate:Boolean(rdapSummary.registeredAt),
+      registrar:Boolean(rdapSummary.registrar),
+      nameservers:nameservers.length,
+      dnssecEnabled,
+      certificateMatches,
+      statuses,
+    },
+    ...rdapSummary,
+    ipv4:a||[],
+    ipv6:aaaa||[],
+    nameservers,
+    mailExchangers:mx||[],
+    dnssec:secureDNS,
+    rdapAvailable:Boolean(rdap),
+    findings,
+  };
 }
 export function analyzeHttp(response: Awaited<ReturnType<typeof safeFetch>>, initialUrl: URL) {
   const h = response.headers;
