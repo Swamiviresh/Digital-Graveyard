@@ -213,16 +213,35 @@ export function analyzeContent(html: string, baseUrl: string) {
   const brands=['paypal','google','microsoft','apple','amazon','coinbase','binance','metamask','facebook','instagram','netflix','steam','chase','wise'];
   const brandSignals=credentialForms.length?brands.filter(brand=>pageTitle.toLowerCase().includes(brand)&&!targetHost.includes(brand)):[];
   const externalCredentialForms=credentialForms.filter(form=>{try{return new URL(form.action,baseUrl).origin!==new URL(baseUrl).origin;}catch{return false;}});
-  if(credentialForms.length) findings.push(makeFinding('content','medium','Credential collection form detected','Password fields were found in the page markup; this alone does not establish phishing intent.',credentialForms.map(f=>`Password inputs: ${f.passwordFields}; form action: ${f.action||'(same page)'}`),'Verify the form purpose and ensure submissions use a trusted endpoint.',0.55,'context'));
-  if(externalCredentialForms.length)findings.push(makeFinding('content','medium','Credential form submits to another origin','A password form action resolves to a different origin than the scanned page. This can be legitimate SSO, but should be verified.',externalCredentialForms.map(f=>f.action),'Confirm the destination is an authorized identity provider.',0.45,'context'));
-  if(brandSignals.length)findings.push(makeFinding('content','medium','Possible brand impersonation signal','The page title names a known brand not present in the scanned hostname while also containing a credential form.',brandSignals.map(brand=>`Title references ${brand}; host is ${targetHost}`),'Verify that the domain is an official brand property before entering credentials.',0.35));
+  const suspiciousCredentialDestinations=externalCredentialForms.filter(form=>{
+    try{
+      const destination=new URL(form.action,baseUrl).hostname.toLowerCase();
+      return !brandSignals.some(brand=>destination.includes(brand));
+    }catch{return true;}
+  });
+  if(credentialForms.length) findings.push(makeFinding('content','medium','Credential collection form detected','Password fields were found in the page markup; this is common on legitimate login pages and is not treated as proof of phishing.',credentialForms.map(f=>`Password inputs: ${f.passwordFields}; form action: ${f.action||'(same page)'}`),'Verify the operator and ensure credential submissions use an authorized endpoint.',0.5,'context'));
+  if(externalCredentialForms.length)findings.push(makeFinding('content','medium','Credential form submits to another origin','A password form action resolves to a different origin than the scanned page. This can be legitimate SSO, but the destination should be verified.',externalCredentialForms.map(f=>f.action),'Confirm the destination is an authorized identity provider.',0.55,'context'));
+  if(brandSignals.length)findings.push(makeFinding('content',suspiciousCredentialDestinations.length?'high':'medium','Possible brand impersonation signal','The page title names a known brand not present in the scanned hostname while also containing a credential form.',brandSignals.map(brand=>`Title references ${brand}; host is ${targetHost}`),'Verify that the domain is an official brand property before entering credentials.',suspiciousCredentialDestinations.length?0.88:0.68,'threat'));
   const suspiciousTerms=['verify your account','urgent action required','wallet seed phrase','your account will be suspended','confirm your password'];
   const matched=suspiciousTerms.filter(term=>text.includes(term));
-  const obfuscated=inlineScripts.some(script=>/\beval\s*\(|\batob\s*\(|document\.write/i.test(script));
-  const misleading=links.filter(link=>/^https?:\/\//i.test(link.text)).filter(link=>{try{return new URL(link.text).hostname!==new URL(link.href,baseUrl).hostname;}catch{return false;}});
-  if(matched.length) findings.push(makeFinding('content','medium','Potentially deceptive language detected','The page contains language often used in credential-harvesting lures.',matched,'Review the context and remove deceptive or coercive language.',0.45,'context'));
-  if(obfuscated)findings.push(makeFinding('content','medium','Obfuscation-like script pattern detected','An inline script uses a dynamic evaluation or decoding pattern; this is an indicator for review, not proof of maliciousness.', ['Inline script contains eval, atob, or document.write.'],'Review the script source and remove unnecessary obfuscation.',0.4,'context'));
+  const obfuscated=inlineScripts.some(script=>{const lower=script.toLowerCase();return lower.includes('eval(')||lower.includes('atob(')||lower.includes('document.write');});
+  const misleading=links.filter(link=>link.text.startsWith('http://')||link.text.startsWith('https://')).filter(link=>{try{return new URL(link.text).hostname!==new URL(link.href,baseUrl).hostname;}catch{return false;}});
+  if(matched.length) findings.push(makeFinding('content','medium','Potentially deceptive language detected','The page contains language sometimes used in credential-harvesting lures. Context matters; a phrase by itself is not proof of maliciousness.',matched,'Review the context and avoid coercive or misleading account prompts.',0.45,'context'));
+  if(obfuscated)findings.push(makeFinding('content','medium','Obfuscation-like script pattern detected','An inline script uses a dynamic evaluation or decoding pattern; this is an indicator for review, not proof of maliciousness.',['Inline script contains eval, atob, or document.write.'],'Review the script source and remove unnecessary obfuscation.',0.4,'context'));
   if(misleading.length)findings.push(makeFinding('content','medium','Visible URL differs from link destination','One or more links display a URL that differs from its destination host.',misleading.slice(0,5).map(l=>`${l.text} -> ${l.href}`),'Verify displayed link text and destination match.',0.55,'context'));
+  const corroboratedPhishingSignals=
+    (brandSignals.length>0 && suspiciousCredentialDestinations.length>0) ||
+    (credentialForms.length>0 && matched.length>=2) ||
+    (credentialForms.length>0 && misleading.length>0);
+  if(corroboratedPhishingSignals){
+    const evidence=[
+      ...(brandSignals.length?[`Brand mismatch: ${brandSignals.join(', ')}`]:[]),
+      ...(suspiciousCredentialDestinations.length?[`${suspiciousCredentialDestinations.length} credential form(s) submit to an unrelated external host`]:[]),
+      ...(matched.length?[`Suspicious language: ${matched.join(', ')}`]:[]),
+      ...(misleading.length?[`${misleading.length} visible URL(s) differ from their destination`]:[]),
+    ];
+    findings.push(makeFinding('content','high','Multiple phishing-like signals detected','Several independent indicators occur together: credential collection plus brand mismatch, multiple account-lure phrases, or deceptive link destinations. This combination warrants investigation but is not a malware verdict.',evidence,'Do not submit credentials or payment details until the site operator and destination domains are independently verified.',0.88,'threat'));
+  }
   if(downloads.length)findings.push(makeFinding('content','low','Executable or archive download links found','The page links to file types that can carry executable or archived content. No files were downloaded.',downloads.slice(0,5),'Verify download links are expected and clearly identified.',0.35,'context'));
   const visibleTextExcerpt = visibleTexts.join(' ').replace(/\s+/g, ' ').trim().slice(0, 1600);
   return { available:true, title:pageTitle, metaDescription, headings:[...new Set(headings)].slice(0, 12), visibleTextExcerpt, brandSignals, externalCredentialForms:externalCredentialForms.length, forms:forms.length, credentialForms:credentialForms.length, scriptCount:scripts.length+inlineScripts.length, inlineScriptCount:inlineScripts.length, externalScriptCount:scripts.length, obfuscationPattern:obfuscated, suspiciousDownloads:downloads.slice(0,10), misleadingLinks:misleading.slice(0,10), scripts:scripts.slice(0,30), externalResourceOrigins:[...new Set(externalResources)].slice(0,40), linkCount:links.length, suspiciousTerms:matched, truncated:html.length>config.maxHtmlChars, findings };
