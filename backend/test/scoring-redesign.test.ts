@@ -77,7 +77,7 @@ test('routine hardening-header omissions have low weight and missing reputation 
     content: 100,
     reputation: null,
   });
-  assert.equal(result.securityScore, 84);
+  assert.equal(result.securityScore, 79);
   assert.equal(result.securityLevel, 'good');
   assert.equal(result.evidenceCoverage, 80);
 });
@@ -117,7 +117,7 @@ test('low-confidence heuristic findings do not trigger malicious-threat score ce
   assert.equal(result.securityLevel, 'strong');
 });
 
-test('unavailable evidence contributes no positive points and is disclosed through coverage', () => {
+test('unavailable evidence limits score confidence without being treated as malicious', () => {
   const result = calculateSecurityScore([], {
     ssl: 100,
     domain: 100,
@@ -125,7 +125,7 @@ test('unavailable evidence contributes no positive points and is disclosed throu
     content: 100,
     reputation: null,
   });
-  assert.equal(result.securityScore, 84);
+  assert.equal(result.securityScore, 79);
   assert.equal(result.securityLevel, 'good');
   assert.equal(result.evidenceCoverage, 80);
 });
