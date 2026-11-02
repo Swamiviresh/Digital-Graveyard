@@ -47,3 +47,12 @@ test('domain identity rewards corroborated registration signals without claiming
     nameserverCount:2,dnssecEnabled:false,statuses:[],certificateMatches:false,
   }),null);
 });
+test('brand-name lookalike hostnames are not trusted merely because they contain the brand word',()=>{
+  const r=analyzeContent('<title>PayPal secure login</title><form action="https://collector.example/login"><input type="password"></form>','https://paypal-login.example/');
+  assert.ok(r.brandSignals.includes('paypal'));
+  assert.ok(r.findings.some(f=>f.title==='Multiple phishing-like signals detected'));
+});
+test('official brand subdomains are not flagged as lookalikes by the hostname check',()=>{
+  const r=analyzeContent('<title>Google account login</title><form action="/signin"><input type="password"></form>','https://accounts.google.com/');
+  assert.equal(r.brandSignals.includes('google'),false);
+});
