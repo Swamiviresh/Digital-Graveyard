@@ -195,17 +195,21 @@ Before a broad public launch, consider authentication, AWS WAF/bot controls, abu
 
 ## Scoring
 
-Each factor has a strength value from 0–100; a higher value represents more favorable observed evidence. Unavailable factors are omitted from the weighted mean rather than treated as suspicious.
+Each factor has a strength value from 0–100; a higher value represents more favorable observed evidence. The model prioritizes domain identity signals and suspicious page behaviour rather than visual polish. It does not score how attractive or professionally designed a page looks.
 
 | Factor | Weight |
 | --- | ---: |
-| SSL/TLS | 25% |
-| Domain/RDAP | 15% |
-| HTTP security | 20% |
-| Page content | 25% |
-| Reputation | 15% |
+| Domain identity and registration | 35% |
+| Suspicious content and behaviour | 35% |
+| External reputation | 20% |
+| TLS / certificate identity | 7% |
+| Routine HTTP security headers | 3% |
 
-The backend also considers severity-weighted findings. High- and critical-severity findings can enforce a minimum overall risk band even when other factors appear healthy. The AI explanation does not alter this calculation.
+Domain identity uses RDAP registration dates/status, registrar metadata, DNS nameserver signals, DNSSEC when present, and whether a valid TLS certificate matches the scanned hostname. These are technical signals; they do **not** independently verify the legal identity or trustworthiness of the registrant or business.
+
+The content analyser gives stronger weight to corroborated suspicious behaviour, such as a brand mismatch combined with credential collection to an unrelated host, multiple account-lure phrases alongside a password form, or misleading displayed links combined with credential collection. A password form or a single phrase alone is not treated as proof of phishing.
+
+Unavailable evidence is not labelled malicious and is excluded from the observed weighted mean, but evidence coverage places a ceiling on the maximum score. High-confidence malicious findings can apply stricter score ceilings even if other factors look healthy. The AI explanation does not alter the deterministic calculation.
 
 ## Costs
 
