@@ -15,7 +15,12 @@ export class VirusTotalProvider implements ReputationProvider {
       const response=await safeFetch(new URL(`https://www.virustotal.com/api/v3/domains/${encodeURIComponent(hostname)}`),0,[],{'x-apikey':keys.virusTotalApiKey});
       if(response.status!==200)return{available:false,reason:`Provider returned HTTP ${response.status}.`,findings:[]};
       const doc=JSON.parse(response.body) as {data?:{attributes?:{last_analysis_stats?:Record<string,number>}}};
-      const stats=doc.data?.attributes?.last_analysis_stats||{};const malicious=Number(stats.malicious||0),suspicious=Number(stats.suspicious||0),total=Object.values(stats).reduce((a,b)=>a+b,0);const findings:Finding[]=[];
+      const stats=doc.data?.attributes?.last_analysis_stats;
+      if(!stats||typeof stats!=='object')return{available:false,reason:'VirusTotal has no completed analysis statistics for this domain.',findings:[]};
+      const counts=Object.values(stats).map(value=>Number(value)).filter(value=>Number.isFinite(value)&&value>=0);
+      const total=counts.reduce((a,b)=>a+b,0);
+      if(total===0)return{available:false,reason:'VirusTotal returned no completed engine results for this domain.',findings:[]};
+      const malicious=Number(stats.malicious||0),suspicious=Number(stats.suspicious||0);const findings:Finding[]=[];
       if(malicious>0){
         const ratio = total > 0 ? malicious / total : 0;
         const severity = malicious >= 5 || (total >= 20 && ratio >= 0.15) ? 'critical' : malicious >= 2 || (total >= 20 && ratio >= 0.05) ? 'high' : 'medium';
