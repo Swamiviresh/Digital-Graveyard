@@ -167,8 +167,8 @@ export function calculateSecurityScore(
   let securityScore = Math.round(clamp(weightedStrength / availableWeight));
   const coverageCeiling = evidenceCoverage < 40 ? 39
     : evidenceCoverage < 60 ? 59
-      : evidenceCoverage < 80 ? 74
-        : evidenceCoverage < 90 ? 84
+      : evidenceCoverage < 80 ? 69
+        : evidenceCoverage < 90 ? 79
           : evidenceCoverage < 95 ? 89
             : evidenceCoverage < 100 ? 94
               : 100;
