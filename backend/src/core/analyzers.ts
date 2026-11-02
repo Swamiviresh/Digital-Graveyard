@@ -59,7 +59,7 @@ export function assessDomainIdentity(evidence: DomainIdentityEvidence, now=Date.
   const ageYears = Number.isFinite(registrationTime)
     ? Math.max(0, (now - registrationTime) / (365.25 * 86400000))
     : null;
-  const normalizedStatuses = evidence.statuses.map(status => status.toLowerCase().replace(/[\\s_-]/g, ''));
+  const normalizedStatuses = evidence.statuses.map(status => status.toLowerCase().replace(/[\s_-]/g, ''));
   const hasHoldStatus = normalizedStatuses.some(status =>
     ['clienthold', 'serverhold', 'redemptionperiod', 'pendingdelete', 'inactive'].includes(status),
   );
@@ -117,7 +117,7 @@ export async function analyzeDomain(hostname: string, certificateMatches = false
   } else if(identityEvidence.rdapAvailable && rdapSummary.domainAgeYears!==null && rdapSummary.domainAgeYears<1){
     findings.push(makeFinding('domain','low','Recently registered domain','RDAP registration data indicates that this domain is less than one year old.',[String(rdapSummary.registeredAt)],'Use additional care with account and payment actions until the operator is established.',0.65,'context'));
   }
-  const normalizedStatuses=statuses.map(status=>status.toLowerCase().replace(/[\\s_-]/g,''));
+  const normalizedStatuses=statuses.map(status=>status.toLowerCase().replace(/[\s_-]/g,''));
   if(normalizedStatuses.some(status=>['clienthold','serverhold','redemptionperiod','pendingdelete','inactive'].includes(status))){
     findings.push(makeFinding('domain','high','Domain registration status needs review','RDAP reports a hold, redemption, pending-delete or inactive status for this domain.',statuses,'Verify the domain registration status with the registrar before trusting the site.',0.9,'posture'));
   }
