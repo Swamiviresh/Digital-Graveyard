@@ -1,9 +1,10 @@
 import type { Finding, ScanFactors, SecurityLevel, Severity, SignalType } from './types.js';
 
 /**
- * Weights for the five independently assessed evidence families. Missing
- * providers are excluded from the weighted mean and disclosed through
- * evidenceCoverage; absence of data is never interpreted as a clean result.
+ * Weights for the five independently assessed evidence families. A missing
+ * factor earns no positive security points and is separately disclosed through
+ * evidenceCoverage. Missing evidence is not proof of maliciousness, but it must
+ * not be treated as a successful check or silently inflate the score.
  */
 export const FACTOR_WEIGHTS = {
   ssl: 0.20,
@@ -143,23 +144,26 @@ export function calculateSecurityScore(
 ): { securityScore: number | null; securityLevel: SecurityLevel; evidenceCoverage: number } {
   let weightedStrength = 0;
   let availableWeight = 0;
-  let coverageWeight = 0;
+  let totalWeight = 0;
 
   for (const [key, weight] of Object.entries(FACTOR_WEIGHTS) as [keyof typeof FACTOR_WEIGHTS, number][]) {
     const factorValue = factors[key];
-    coverageWeight += weight;
+    totalWeight += weight;
     if (typeof factorValue !== 'number' || !Number.isFinite(factorValue)) continue;
     const bounded = clamp(factorValue);
     weightedStrength += bounded * weight;
     availableWeight += weight;
   }
 
-  const evidenceCoverage = Math.round((availableWeight / coverageWeight) * 100);
+  const evidenceCoverage = Math.round((availableWeight / totalWeight) * 100);
   if (availableWeight === 0) {
     return { securityScore: null, securityLevel: 'unknown', evidenceCoverage: 0 };
   }
 
-  let securityScore = Math.round(clamp(weightedStrength / availableWeight));
+  // Do not renormalize against only the available factors. Missing checks have
+  // zero positive contribution until evidence exists, preventing a 75%-covered
+  // scan from receiving the same score as a fully evaluated clean site.
+  let securityScore = Math.round(clamp(weightedStrength));
   const applicableCeilings = findings
     .map(threatScoreCeiling)
     .filter((value): value is number => value !== null);
