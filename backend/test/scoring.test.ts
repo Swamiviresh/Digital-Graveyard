@@ -3,6 +3,7 @@ import * as assert from 'node:assert/strict';
 import {
   calculateFactorStrength,
   calculateSecurityScore,
+  FACTOR_WEIGHTS,
   makeFinding,
 } from '../src/core/scoring.js';
 import type { Finding, ScanFactors, Severity, SignalType } from '../src/core/types.js';
@@ -25,12 +26,43 @@ function finding(
   return makeFinding(category, severity, title, 'Test evidence.', [], 'Review this evidence.', confidence, signalType);
 }
 
+test('domain identity and suspicious behaviour dominate routine presentation hardening', () => {
+  assert.equal(FACTOR_WEIGHTS.domain, 0.35);
+  assert.equal(FACTOR_WEIGHTS.content, 0.35);
+  assert.equal(FACTOR_WEIGHTS.reputation, 0.20);
+  assert.equal(FACTOR_WEIGHTS.ssl, 0.07);
+  assert.equal(FACTOR_WEIGHTS.httpSecurity, 0.03);
+  assert.equal(Object.values(FACTOR_WEIGHTS).reduce((sum, weight) => sum + weight, 0), 1);
+});
+
+test('routine header findings barely move a fully covered clean score', () => {
+  const headers = [
+    finding('http', 'medium', 'posture', 0.8, 'HSTS header is missing'),
+    finding('http', 'low', 'posture', 0.8, 'Content Security Policy is missing'),
+    finding('http', 'low', 'posture', 0.8, 'Content type protection is missing'),
+  ];
+  const result = calculateSecurityScore(headers, {
+    ...completeCleanFactors,
+    httpSecurity: calculateFactorStrength(headers),
+  });
+  assert.ok((result.securityScore ?? 0) >= 99);
+  assert.equal(result.evidenceCoverage, 100);
+});
+
+test('corroborated phishing behaviour sharply lowers an otherwise clean score', () => {
+  const phishing = finding('content', 'high', 'threat', 0.88, 'Multiple phishing-like signals detected');
+  const factors = { ...completeCleanFactors, content: calculateFactorStrength([phishing]) };
+  const result = calculateSecurityScore([phishing], factors);
+  assert.ok((result.securityScore ?? 100) <= 30);
+  assert.equal(result.securityLevel, 'high-risk');
+});
+
 test('higher scores represent stronger security when all checks are clean', () => {
   const result = calculateSecurityScore([], completeCleanFactors);
   assert.deepEqual(result, { securityScore: 100, securityLevel: 'strong', evidenceCoverage: 100 });
 });
 
-test('routine hardening-header omissions remain minor, while unavailable reputation evidence is not awarded clean points', () => {
+test('routine hardening-header omissions have low weight and missing reputation limits score confidence', () => {
   const headerFindings = [
     finding('http', 'medium', 'posture', 0.8, 'HSTS header is missing'),
     finding('http', 'low', 'posture', 0.8, 'Content Security Policy is missing'),
@@ -45,9 +77,9 @@ test('routine hardening-header omissions remain minor, while unavailable reputat
     content: 100,
     reputation: null,
   });
-  assert.equal(result.securityScore, 74);
+  assert.equal(result.securityScore, 84);
   assert.equal(result.securityLevel, 'good');
-  assert.equal(result.evidenceCoverage, 75);
+  assert.equal(result.evidenceCoverage, 80);
 });
 
 test('a high-confidence critical malicious finding caps the security score', () => {
@@ -93,9 +125,9 @@ test('unavailable evidence contributes no positive points and is disclosed throu
     content: 100,
     reputation: null,
   });
-  assert.equal(result.securityScore, 75);
+  assert.equal(result.securityScore, 84);
   assert.equal(result.securityLevel, 'good');
-  assert.equal(result.evidenceCoverage, 75);
+  assert.equal(result.evidenceCoverage, 80);
 });
 
 test('no usable evidence returns unknown rather than falsely labelling the site unsafe', () => {
