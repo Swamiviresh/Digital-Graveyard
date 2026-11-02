@@ -30,7 +30,7 @@ test('higher scores represent stronger security when all checks are clean', () =
   assert.deepEqual(result, { securityScore: 100, securityLevel: 'strong', evidenceCoverage: 100 });
 });
 
-test('a Google-like site with only routine hardening-header omissions remains strongly rated', () => {
+test('routine hardening-header omissions remain minor, while unavailable reputation evidence is not awarded clean points', () => {
   const headerFindings = [
     finding('http', 'medium', 'posture', 0.8, 'HSTS header is missing'),
     finding('http', 'low', 'posture', 0.8, 'Content Security Policy is missing'),
@@ -45,8 +45,8 @@ test('a Google-like site with only routine hardening-header omissions remains st
     content: 100,
     reputation: null,
   });
-  assert.ok((result.securityScore ?? 0) >= 95, `Expected security score >= 95, got ${result.securityScore}`);
-  assert.equal(result.securityLevel, 'strong');
+  assert.equal(result.securityScore, 74);
+  assert.equal(result.securityLevel, 'good');
   assert.equal(result.evidenceCoverage, 75);
 });
 
@@ -85,7 +85,7 @@ test('low-confidence heuristic findings do not trigger malicious-threat score ce
   assert.equal(result.securityLevel, 'strong');
 });
 
-test('unavailable evidence is excluded from the weighted score and disclosed as coverage', () => {
+test('unavailable evidence contributes no positive points and is disclosed through coverage', () => {
   const result = calculateSecurityScore([], {
     ssl: 100,
     domain: 100,
@@ -93,8 +93,8 @@ test('unavailable evidence is excluded from the weighted score and disclosed as 
     content: 100,
     reputation: null,
   });
-  assert.equal(result.securityScore, 100);
-  assert.equal(result.securityLevel, 'strong');
+  assert.equal(result.securityScore, 75);
+  assert.equal(result.securityLevel, 'good');
   assert.equal(result.evidenceCoverage, 75);
 });
 
