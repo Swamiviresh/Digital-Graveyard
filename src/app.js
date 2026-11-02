@@ -42,6 +42,7 @@ function mountSharedHeader() {
       <nav class="dg-main-nav" id="dg-site-nav" aria-label="Main navigation">
         <a data-path="home" href="/">HOME</a>
         <a data-path="scanner" href="/scan/">SCANNER</a>
+        <a data-path="phishing" href="/phishing/">PHISHING DETECTOR</a>
         <a data-path="how-it-works" href="/#how-it-works">HOW IT WORKS</a>
       </nav>
       <div class="dg-header-actions">
@@ -56,6 +57,7 @@ function mountSharedHeader() {
 const ROUTES = {
   home: '/',
   scanner: '/scan/',
+  phishing: '/phishing/',
   'analysis-report': '/report/',
   'how-it-works': '/#how-it-works',
   'threat-matrix': '/report/#accordionContainer',
@@ -66,7 +68,7 @@ const ROUTES = {
 
 function wireNavigation() {
   const path = window.location.pathname.replace(/\/$/, '') || '/';
-  const activeKey = path === '/scan' ? 'scanner' : path === '/report' ? 'analysis-report' : 'home';
+  const activeKey = path === '/scan' ? 'scanner' : path === '/phishing' ? 'phishing' : path === '/report' ? 'analysis-report' : 'home';
 
   document.querySelectorAll('a[data-path]').forEach((link) => {
     const key = link.dataset.path;
