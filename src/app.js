@@ -618,23 +618,7 @@ function initReport() {
     if (message) message.textContent = `DEMO REPORT FOR ${displayHost.toUpperCase()} · Scores and findings are sample values, not a live security assessment.`;
   }
 
-  const showToast = (message) => {
-    document.getElementById('dossierToast')?.remove();
-    const toast = document.createElement('div');
-    toast.id = 'dossierToast';
-    toast.className = 'fixed bottom-6 right-6 z-[100] rounded-lg border border-primary/40 bg-[#292933] px-4 py-3 text-sm text-primary shadow-2xl';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    window.setTimeout(() => toast.remove(), 2800);
-  };
-
-  const downloadButtons = [document.getElementById('pdfExportBtn'), document.getElementById('downloadPdfCta')].filter(Boolean);
-  downloadButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      showToast('Opening your browser print dialog. Choose “Save as PDF” to export this report.');
-      window.setTimeout(() => window.print(), 250);
-    });
-  });
+  // Report export controls are intentionally omitted from the live report UI.
 
 }
 
