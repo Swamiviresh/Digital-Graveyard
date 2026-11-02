@@ -1,17 +1,18 @@
 import type { Finding, ScanFactors, SecurityLevel, Severity, SignalType } from './types.js';
 
 /**
- * Weights for the five independently assessed evidence families. A missing
- * factor earns no positive security points and is separately disclosed through
- * evidenceCoverage. Missing evidence is not proof of maliciousness, but it must
- * not be treated as a successful check or silently inflate the score.
+ * Domain identity, suspicious content/behaviour, and provider reputation
+ * account for 90% of the score. Visual polish is not measured. TLS identity is
+ * important but comparatively light; routine response-header hardening has
+ * deliberately low weight. Missing evidence is disclosed and limits confidence.
  */
 export const FACTOR_WEIGHTS = {
-  ssl: 0.20,
-  domain: 0.10,
-  httpSecurity: 0.15,
-  content: 0.30,
-  reputation: 0.25,
+  // Domain registration/identity and suspicious page behaviour dominate.
+  domain: 0.35,
+  content: 0.35,
+  reputation: 0.20,
+  ssl: 0.07,
+  httpSecurity: 0.03,
 } as const;
 
 const CATEGORY_BY_FACTOR: Record<keyof ScanFactors, string> = {
@@ -160,10 +161,19 @@ export function calculateSecurityScore(
     return { securityScore: null, securityLevel: 'unknown', evidenceCoverage: 0 };
   }
 
-  // Do not renormalize against only the available factors. Missing checks have
-  // zero positive contribution until evidence exists, preventing a 75%-covered
-  // scan from receiving the same score as a fully evaluated clean site.
-  let securityScore = Math.round(clamp(weightedStrength));
+  // Missing checks are not treated as malicious or as clean. Score the evidence
+  // that exists, but cap the maximum score according to its coverage so an
+  // 80%-covered scan cannot be presented as fully verified or strongly secure.
+  let securityScore = Math.round(clamp(weightedStrength / availableWeight));
+  const coverageCeiling = evidenceCoverage < 40 ? 39
+    : evidenceCoverage < 60 ? 59
+      : evidenceCoverage < 80 ? 74
+        : evidenceCoverage < 90 ? 84
+          : evidenceCoverage < 95 ? 89
+            : evidenceCoverage < 100 ? 94
+              : 100;
+  securityScore = Math.min(securityScore, coverageCeiling);
+
   const applicableCeilings = findings
     .map(threatScoreCeiling)
     .filter((value): value is number => value !== null);
