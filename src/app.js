@@ -319,13 +319,17 @@ function compactEvidenceSummary(key, data) {
   }
 
   if (key === 'domain') {
+    if (data.identityAssessment) parts.push(String(data.identityAssessment));
+    if (typeof data.identityStrength === 'number') parts.push(`domain identity signals ${data.identityStrength} / 100`);
     if (data.domainAgeYears !== null && data.domainAgeYears !== undefined && Number.isFinite(Number(data.domainAgeYears))) parts.push(`domain age ${data.domainAgeYears} years`);
     if (data.registrar) parts.push(`registrar ${String(data.registrar).slice(0, 90)}`);
     const ipv4 = Array.isArray(data.ipv4) ? data.ipv4.length : 0;
     const ipv6 = Array.isArray(data.ipv6) ? data.ipv6.length : 0;
     const ns = Array.isArray(data.nameservers) ? data.nameservers.length : 0;
     parts.push(`DNS: ${ipv4} IPv4 · ${ipv6} IPv6 · ${ns} nameservers`);
-    parts.push(data.rdapAvailable ? 'RDAP available' : 'RDAP unavailable');
+    parts.push(data.rdapAvailable ? 'RDAP registration record found' : 'RDAP registration unavailable');
+    if (data.identitySignals?.certificateMatches) parts.push('TLS certificate matched the scanned hostname');
+    if (data.identitySignals?.dnssecEnabled) parts.push('DNSSEC signing observed');
     return parts.join(' · ');
   }
 
@@ -473,10 +477,10 @@ function renderLiveReport(report) {
   if(factorsSection){
     const factorSpecs=[
       ['ssl','TLS / Certificate Security',report.ssl],
-      ['domain','Domain Intelligence',report.domain],
+      ['domain','Domain Identity & Registration',report.domain],
       ['httpSecurity','HTTP Security',report.http],
       ['reputation','Reputation Intelligence',report.reputation],
-      ['content','Content Analysis',report.content],
+      ['content','Suspicious Content & Behaviour',report.content],
     ];
     const rowNodes=[...factorsSection.querySelectorAll(':scope > div:nth-child(2) > div')].filter(n=>n.querySelector('.font-title-md'));
     factorSpecs.forEach(([key,label,data],i)=>{
