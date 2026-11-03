@@ -109,7 +109,13 @@ export async function safeFetch(input: URL, redirectCount = 0, redirectTrail: st
         secureSocket.once('secureConnect', onSecureConnect);
         // Reused, already-connected TLS sockets may have completed the handshake
         // before the request's socket listener is attached.
-        if (!secureSocket.secureConnecting && !secureSocket.connecting) {
+        const existingPeer = secureSocket.getPeerCertificate();
+        const handshakeAlreadyComplete = Boolean(
+          existingPeer &&
+          Object.keys(existingPeer).length > 0 &&
+          (existingPeer.subject || existingPeer.valid_to || existingPeer.fingerprint256),
+        );
+        if (handshakeAlreadyComplete) {
           captureTlsEvidence(secureSocket);
           ready();
         }
