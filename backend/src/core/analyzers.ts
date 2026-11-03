@@ -13,7 +13,7 @@ export async function analyzeTls(
   connectionError?: string,
   capturedEvidence?: TlsEvidence,
 ) {
-  const evidence = capturedEvidence || response || {};
+  const evidence: TlsEvidence = capturedEvidence || response || {};
   const certificate = evidence.certificate || null;
   const transportError = connectionError || evidence.tlsError || undefined;
 
