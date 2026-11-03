@@ -140,3 +140,29 @@ test('no usable evidence returns unknown rather than falsely labelling the site 
   });
   assert.deepEqual(result, { securityScore: null, securityLevel: 'unknown', evidenceCoverage: 0 });
 });
+
+test('missing TLS and reputation evidence caps an otherwise clean scan below strong security', () => {
+  const result = calculateSecurityScore([], {
+    ssl: null,
+    domain: 85,
+    httpSecurity: 91,
+    content: 100,
+    reputation: null,
+  });
+  assert.equal(result.evidenceCoverage, 73);
+  assert.equal(result.securityScore, 69);
+  assert.equal(result.securityLevel, 'good');
+});
+
+test('missing reputation evidence prevents a strong rating even when other checks are clean', () => {
+  const result = calculateSecurityScore([], {
+    ssl: 100,
+    domain: 100,
+    httpSecurity: 91,
+    content: 100,
+    reputation: null,
+  });
+  assert.equal(result.evidenceCoverage, 80);
+  assert.equal(result.securityScore, 79);
+  assert.equal(result.securityLevel, 'good');
+});
