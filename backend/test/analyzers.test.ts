@@ -83,6 +83,7 @@ test('TLS analysis keeps a failed handshake unavailable and preserves its diagno
   const result = await analyzeTls(null, 'google.com', 'ETIMEDOUT: TLS probe timed out');
   assert.equal(result.available, false);
   assert.equal(result.valid, false);
-  assert.match(String(result.error), /ETIMEDOUT/);
+  assert.ok('error' in result);
+  assert.match(String('error' in result ? result.error : ''), /ETIMEDOUT/);
   assert.deepEqual(result.findings, []);
 });
