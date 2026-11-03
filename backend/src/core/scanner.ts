@@ -1,5 +1,6 @@
 import { normalizeUrl, ScanInputError } from './url-safety.js';
-import { safeFetch } from './safe-fetch.js';
+import { safeFetch, SafeFetchError } from './safe-fetch.js';
+import type { SafeResponse, TlsEvidence } from './safe-fetch.js';
 import { analyzeContent, analyzeDomain, analyzeHttp, analyzeTls } from './analyzers.js';
 import { checkReputation } from './reputation.js';
 import { calculateFactorStrength, calculateSecurityScore, securityLevelLabel } from './scoring.js';
@@ -31,23 +32,33 @@ export async function runScan(
   }
 
   await progress('Inspecting TLS and HTTP security', 25);
-  let tlsResponse = response;
+  let tlsResponse: SafeResponse | null = response;
+  let tlsEvidence: TlsEvidence | undefined;
   let tlsConnectionError: string | undefined;
   const submittedHost = target.hostname.replace(/^\[|\]$/g, '');
   const finalHost = new URL(response.url).hostname.replace(/^\[|\]$/g, '');
+
+  // A redirect can move the content request to another host. Probe the original
+  // submitted hostname directly (without following redirects) so its certificate
+  // is never confused with the certificate of a redirect destination.
   if (target.protocol === 'http:' || !response.url.startsWith('https:') || finalHost !== submittedHost) {
     const probe = new URL(target.href);
     probe.protocol = 'https:';
     probe.port = '';
+    tlsResponse = null;
     try {
       tlsResponse = await safeFetch(probe, 0, [], {}, false);
     } catch (error) {
       if (error instanceof ScanInputError) throw error;
-      tlsConnectionError = 'HTTPS connection failed during the certificate probe.';
+      const message = error instanceof Error ? error.message : String(error);
+      tlsConnectionError = error instanceof SafeFetchError && error.code
+        ? `${error.code}: ${message}`
+        : message;
+      if (error instanceof SafeFetchError) tlsEvidence = error.tlsEvidence;
     }
   }
 
-  const tls = await analyzeTls(tlsResponse, submittedHost, tlsConnectionError);
+  const tls = await analyzeTls(tlsResponse, submittedHost, tlsConnectionError, tlsEvidence);
   const hostname = target.hostname.replace(/^\[|\]$/g, '');
   const domain = await analyzeDomain(hostname, Boolean(tls.valid && tls.hostnameMatches));
   const http = analyzeHttp(response, target);
@@ -78,7 +89,10 @@ export async function runScan(
       : [];
     limitations.push(`Reputation check unavailable: ${providers.map(provider => provider.reason).filter(Boolean).join('; ') || 'provider did not return evidence'}`);
   }
-  if (!tls.available) limitations.push('TLS certificate details were unavailable.');
+  if (!tls.available) {
+    const tlsReason = 'error' in tls && typeof tls.error === 'string' ? tls.error : 'no peer certificate was captured';
+    limitations.push(`TLS certificate details were unavailable: ${tlsReason}`);
+  }
   if (!content.available) {
     limitations.push('reason' in content ? String(content.reason) : 'Content analysis was unavailable.');
   }
