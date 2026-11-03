@@ -56,3 +56,33 @@ test('official brand subdomains are not flagged as lookalikes by the hostname ch
   const r=analyzeContent('<title>Google account login</title><form action="/signin"><input type="password"></form>','https://accounts.google.com/');
   assert.equal(r.brandSignals.includes('google'),false);
 });
+
+test('TLS analysis can validate a captured certificate when the HTTP request fails after handshake', async () => {
+  const certificate = {
+    subject: { CN: 'www.google.com' },
+    issuer: { CN: 'Example Trust Root' },
+    validFrom: new Date(Date.now() - 86400000).toISOString(),
+    validTo: new Date(Date.now() + 86400000).toISOString(),
+    fingerprint256: 'AA:BB:CC',
+    subjectAltName: 'DNS:google.com, DNS:www.google.com',
+  };
+  const result = await analyzeTls(
+    null,
+    'google.com',
+    'ECONNRESET: peer closed after TLS handshake',
+    { certificate, tlsAuthorized: true },
+  );
+  assert.equal(result.available, true);
+  assert.equal(result.httpsAvailable, true);
+  assert.equal(result.valid, true);
+  assert.equal(result.hostnameMatches, true);
+  assert.equal(result.connectionError, 'ECONNRESET: peer closed after TLS handshake');
+});
+
+test('TLS analysis keeps a failed handshake unavailable and preserves its diagnostic', async () => {
+  const result = await analyzeTls(null, 'google.com', 'ETIMEDOUT: TLS probe timed out');
+  assert.equal(result.available, false);
+  assert.equal(result.valid, false);
+  assert.match(String(result.error), /ETIMEDOUT/);
+  assert.deepEqual(result.findings, []);
+});
