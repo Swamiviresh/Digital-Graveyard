@@ -270,6 +270,12 @@ function initScanner() {
   const input=document.getElementById('target-url-input');
   const ui={inputContainer:document.getElementById('scanner-input-container'),chamber:document.getElementById('interactive-scanning-chamber'),heading:document.getElementById('main-heading'),eyebrow:document.getElementById('eyebrow-text'),description:document.getElementById('main-description'),activeTarget:document.getElementById('active-target-url'),progressBar:document.getElementById('scan-progress-bar'),percentageText:document.getElementById('scan-percentage-text'),stageStatus:document.getElementById('stage-status-indicator'),completedAction:document.getElementById('scan-completed-action')};
   window.fillTarget=value=>{if(input){input.value=value;input.focus();}};
+  // A completed scan page can be restored from the browser back-forward cache
+  // when the user returns from its report. Reload only on that restoration so
+  // the scanner starts in its initial URL-entry state instead of showing 100%.
+  window.addEventListener('pageshow', event => {
+    if (event.persisted) window.location.reload();
+  });
   const note=document.getElementById('scan-demo-note');
   if(note) note.textContent=API_BASE_URL?'LIVE SCAN MODE · Results come from the configured analysis API.':'DEMO MODE · No backend URL is configured; the sample report is not a live assessment.';
   form.addEventListener('submit',async event=>{
