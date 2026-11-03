@@ -144,7 +144,8 @@ export async function analyzeTls(
     valid,
     hostnameMatches,
     certificate,
-    connectionError: transportError || null,
+    connectionError: null,
+    requestError: transportError || null,
     daysUntilExpiry: Number.isFinite(expiry) ? Math.floor((expiry - now) / 86400000) : null,
     findings,
   };
