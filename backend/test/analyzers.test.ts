@@ -76,7 +76,8 @@ test('TLS analysis can validate a captured certificate when the HTTP request fai
   assert.equal(result.httpsAvailable, true);
   assert.equal(result.valid, true);
   assert.equal(result.hostnameMatches, true);
-  assert.equal(result.connectionError, 'ECONNRESET: peer closed after TLS handshake');
+  assert.equal(result.connectionError, null);
+  assert.equal(result.requestError, 'ECONNRESET: peer closed after TLS handshake');
 });
 
 test('TLS analysis keeps a failed handshake unavailable and preserves its diagnostic', async () => {
