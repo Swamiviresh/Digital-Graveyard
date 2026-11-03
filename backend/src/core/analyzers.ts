@@ -1,26 +1,153 @@
 import { parse } from 'parse5';
 import { resolve4, resolve6, resolveMx, resolveNs } from 'node:dns/promises';
 import { safeFetch } from './safe-fetch.js';
+import type { SafeResponse, TlsEvidence } from './safe-fetch.js';
 import { makeFinding } from './scoring.js';
 import { config } from './config.js';
 import type { Finding } from './types.js';
 
 const attempt = async <T>(fn: () => Promise<T>): Promise<T | null> => { try { return await fn(); } catch { return null; } };
-export async function analyzeTls(response: Awaited<ReturnType<typeof safeFetch>>, hostname: string, connectionError?:string) {
-  if (!response.url.startsWith('https:')) return { available: true, httpsAvailable: false, valid: false, certificate: null, error: connectionError||'HTTPS was unavailable during the certificate probe.', findings:[makeFinding('ssl','medium','HTTPS is unavailable','The target did not complete an HTTPS connection.',[connectionError||'HTTPS probe did not receive a TLS response.'],'Enable HTTPS with a valid certificate.',0.8,'posture')] };
-  const cert = response.certificate;
-  const expiry = cert?.validTo ? Date.parse(String(cert.validTo)) : NaN;
-  const valid = Boolean(response.tlsAuthorized) && Number.isFinite(expiry) && expiry > Date.now();
-  const names=String(cert?.subjectAltName||'').split(',').map(v=>v.trim().replace(/^DNS:/i,'').toLowerCase());
-  const host=hostname.toLowerCase();
-  const sanMatch=names.some(name=>name===host||(name.startsWith('*.')&&host.endsWith(name.slice(1))&&host.split('.').length===name.split('.').length));
-  const cn=String((cert?.subject as Record<string,string>|undefined)?.CN||'').toLowerCase();
-  const hostMatches=Boolean(cert&&(sanMatch||(!names.length&&cn===host)));
+export async function analyzeTls(
+  response: SafeResponse | null,
+  hostname: string,
+  connectionError?: string,
+  capturedEvidence?: TlsEvidence,
+) {
+  const evidence = capturedEvidence || response || {};
+  const certificate = evidence.certificate || null;
+  const transportError = connectionError || evidence.tlsError || undefined;
+
+  // A successful HTTP response to an HTTPS probe means the endpoint did not
+  // negotiate TLS. This is an observed posture failure, not missing evidence.
+  if (response && !response.url.startsWith('https:')) {
+    const reason = transportError || 'The HTTPS probe returned a non-HTTPS response.';
+    return {
+      available: true,
+      httpsAvailable: false,
+      valid: false,
+      hostnameMatches: false,
+      certificate: null,
+      error: reason,
+      connectionError: reason,
+      findings: [
+        makeFinding(
+          'ssl',
+          'medium',
+          'HTTPS is unavailable',
+          'The target did not complete an HTTPS connection.',
+          [reason],
+          'Enable HTTPS with a valid certificate.',
+          0.8,
+          'posture',
+        ),
+      ],
+    };
+  }
+
+  // A failed handshake or a missing peer certificate must stay unavailable.
+  // Do not turn a network failure into a clean TLS score or an invalid-cert claim.
+  if (!certificate) {
+    const reason = transportError || (
+      response
+        ? 'The TLS handshake completed but the peer certificate was not captured.'
+        : 'The TLS probe did not complete a handshake or return a peer certificate.'
+    );
+    const handshakeObserved = evidence.tlsAuthorized !== undefined;
+    return {
+      available: false,
+      httpsAvailable: Boolean(response?.url.startsWith('https:') || handshakeObserved),
+      valid: false,
+      hostnameMatches: false,
+      certificate: null,
+      error: reason,
+      connectionError: reason,
+      findings: [] as Finding[],
+    };
+  }
+
+  const expiry = certificate.validTo ? Date.parse(String(certificate.validTo)) : NaN;
+  const notBefore = certificate.validFrom ? Date.parse(String(certificate.validFrom)) : NaN;
+  const now = Date.now();
+  const certificateTimeValid =
+    Number.isFinite(expiry) &&
+    expiry > now &&
+    (!Number.isFinite(notBefore) || notBefore <= now);
+
+  const names = String(certificate.subjectAltName || '')
+    .split(',')
+    .map(value => value.trim().replace(/^DNS:/i, '').toLowerCase())
+    .filter(Boolean);
+  const host = hostname.toLowerCase();
+  const sanMatch = names.some(name =>
+    name === host ||
+    (name.startsWith('*.') &&
+      host.endsWith(name.slice(1)) &&
+      host.split('.').length === name.split('.').length),
+  );
+  const commonName = String(
+    (certificate.subject as Record<string, string> | undefined)?.CN || '',
+  ).toLowerCase();
+  const hostnameMatches = Boolean(sanMatch || (!names.length && commonName === host));
+  const chainTrusted = evidence.tlsAuthorized === true;
+  const valid = chainTrusted && certificateTimeValid && hostnameMatches;
   const findings: Finding[] = [];
-  if (!valid) findings.push(makeFinding('ssl', 'high', 'TLS certificate is not valid', 'The HTTPS certificate could not be validated as trusted and current.', [String(cert?.validTo || response.tlsAuthorized === false ? 'Certificate validation failed.' : 'Certificate details unavailable.')], 'Renew or correctly configure the certificate.',0.8,'posture'));
-  if (cert && !hostMatches) findings.push(makeFinding('ssl', 'high', 'Certificate hostname mismatch', 'The certificate identity does not match the scanned hostname.', [hostname, String(cert.subjectAltName || '')], 'Issue a certificate for the scanned hostname.',0.8,'posture'));
-  if (Number.isFinite(expiry) && expiry - Date.now() < 14 * 86400000 && expiry > Date.now()) findings.push(makeFinding('ssl', 'medium', 'Certificate expires soon', 'The certificate expires within 14 days.', [String(cert?.validTo)], 'Renew the certificate before it expires.',0.8,'posture'));
-  return { available: Boolean(cert), httpsAvailable: true, valid, hostnameMatches: hostMatches, certificate: cert || null, connectionError:response.tlsError||null, daysUntilExpiry: Number.isFinite(expiry) ? Math.floor((expiry-Date.now())/86400000) : null, findings };
+
+  if (!chainTrusted || !certificateTimeValid) {
+    const problems: string[] = [];
+    if (!chainTrusted) problems.push(transportError || 'The certificate chain was not trusted by the TLS verifier.');
+    if (!Number.isFinite(notBefore) && !Number.isFinite(expiry)) {
+      problems.push('The certificate validity dates were missing or unreadable.');
+    } else if (!certificateTimeValid) {
+      problems.push('The certificate is not currently within its validity period.');
+    }
+    findings.push(makeFinding(
+      'ssl',
+      'high',
+      'TLS certificate is not valid',
+      'The HTTPS certificate could not be validated as trusted and current.',
+      problems,
+      'Renew or correctly configure the certificate and its trust chain.',
+      0.85,
+      'posture',
+    ));
+  }
+
+  if (!hostnameMatches) {
+    findings.push(makeFinding(
+      'ssl',
+      'high',
+      'Certificate hostname mismatch',
+      'The certificate identity does not match the scanned hostname.',
+      [hostname, String(certificate.subjectAltName || commonName || 'No matching DNS identity was present.')],
+      'Issue a certificate for the scanned hostname.',
+      0.85,
+      'posture',
+    ));
+  }
+
+  if (Number.isFinite(expiry) && expiry - now < 14 * 86400000 && expiry > now) {
+    findings.push(makeFinding(
+      'ssl',
+      'medium',
+      'Certificate expires soon',
+      'The certificate expires within 14 days.',
+      [String(certificate.validTo)],
+      'Renew the certificate before it expires.',
+      0.8,
+      'posture',
+    ));
+  }
+
+  return {
+    available: true,
+    httpsAvailable: true,
+    valid,
+    hostnameMatches,
+    certificate,
+    connectionError: transportError || null,
+    daysUntilExpiry: Number.isFinite(expiry) ? Math.floor((expiry - now) / 86400000) : null,
+    findings,
+  };
 }
 
 export function summarizeRdap(rdap:Record<string,unknown>|null, now=Date.now()) {
