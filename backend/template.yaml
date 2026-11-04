@@ -32,6 +32,12 @@ Parameters:
     Default: ''
     Description: Optional Secrets Manager secret JSON with provider API keys.
 
+  EnableCertificateTransparency:
+    Type: String
+    AllowedValues: ['true', 'false']
+    Default: 'false'
+    Description: Enable the optional crt.sh passive certificate issuance lookup.
+
   MaxScansPerMinute:
     Type: Number
     Default: 5
@@ -70,6 +76,10 @@ Globals:
         BEDROCK_MODEL_ID: !Ref BedrockModelId
         BEDROCK_REGION: !Ref BedrockRegion
         REPUTATION_SECRET_ARN: !Ref ReputationSecretArn
+        REPUTATION_CACHE_TABLE_NAME: !Ref ReputationCacheTable
+        OPENPHISH_FEED_BUCKET: !Ref OpenPhishFeedBucket
+        OPENPHISH_FEED_KEY: feed.txt
+        ENABLE_CERTIFICATE_TRANSPARENCY: !Ref EnableCertificateTransparency
         LOG_LEVEL: info
 
 Resources:
@@ -104,6 +114,35 @@ Resources:
         Enabled: true
       SSESpecification:
         SSEEnabled: true
+
+  ReputationCacheTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: cacheKey
+          AttributeType: S
+      KeySchema:
+        - AttributeName: cacheKey
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+
+  OpenPhishFeedBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
 
   ScanDlq:
     Type: AWS::SQS::Queue
@@ -215,6 +254,40 @@ Resources:
             Path: '/api/scans/{scanId}/report'
             Method: OPTIONS
 
+  OpenPhishFeedUpdaterFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        EntryPoints: [src/worker/openphish-feed-updater.ts]
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        Format: cjs
+        OutExtension: ['.js=.cjs']
+    Properties:
+      CodeUri: .
+      Handler: openphish-feed-updater.handler
+      Timeout: 60
+      MemorySize: 256
+      Environment:
+        Variables:
+          OPENPHISH_FEED_BUCKET: !Ref OpenPhishFeedBucket
+          OPENPHISH_FEED_KEY: feed.txt
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource: !Sub '${OpenPhishFeedBucket.Arn}/feed.txt'
+      Events:
+        RefreshCommunityFeed:
+          Type: Schedule
+          Properties:
+            Schedule: rate(12 hours)
+            Enabled: true
+            Description: Refresh the non-commercial OpenPhish community feed snapshot every 12 hours.
+
   WorkerFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -252,6 +325,20 @@ Resources:
                 - dynamodb:GetItem
                 - dynamodb:UpdateItem
               Resource: !GetAtt ScanTable.Arn
+
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+              Resource: !GetAtt ReputationCacheTable.Arn
+
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+              Resource: !Sub '${OpenPhishFeedBucket.Arn}/feed.txt'
 
         - Statement:
             - Effect: Allow
