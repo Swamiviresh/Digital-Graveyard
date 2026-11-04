@@ -608,6 +608,29 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, providerNa
   }
 }
 
+export function reputationConsensus(
+  providers: Array<{ name: string; available: boolean }>,
+  findings: Finding[],
+): { available: boolean; activePrimarySources: number; reason?: string } {
+  const primary = new Set(['Google Safe Browsing', 'OpenPhish Community Feed', 'URLhaus', 'VirusTotal']);
+  const activePrimarySources = providers.filter(provider => primary.has(provider.name) && provider.available).length;
+  const corroboratedThreat = findings.some(finding =>
+    finding.signalType === 'threat' &&
+    finding.confidence >= 0.85 &&
+    (finding.severity === 'critical' || finding.severity === 'high'),
+  );
+  const available = corroboratedThreat || activePrimarySources >= 2;
+  return {
+    available,
+    activePrimarySources,
+    ...(!available ? {
+      reason: activePrimarySources === 1
+        ? 'Only one independent threat-intelligence source returned data; a single no-match is insufficient to call reputation clean.'
+        : 'Fewer than two independent primary threat-intelligence sources returned usable evidence.',
+    } : {}),
+  };
+}
+
 export async function checkReputation(
   target: URL,
   preliminaryFindings: Finding[] = [],
@@ -627,9 +650,36 @@ export async function checkReputation(
     if (item.status === 'fulfilled') return item.value;
     return unavailable(item.reason instanceof Error ? item.reason.message : providers[index]!.name + ' failed.');
   });
+  const findings = results.flatMap(result => result.findings);
+  const primaryProviders = new Set([
+    'Google Safe Browsing',
+    'OpenPhish Community Feed',
+    'URLhaus',
+    'VirusTotal',
+  ]);
+  const activePrimarySources = results.filter((result, index) =>
+    primaryProviders.has(providers[index]!.name) && result.available,
+  ).length;
+  const corroboratedThreat = findings.some(finding =>
+    finding.signalType === 'threat' &&
+    finding.confidence >= 0.85 &&
+    (finding.severity === 'critical' || finding.severity === 'high'),
+  );
+  // One clean feed is not enough to label reputation clean. Require two
+  // independent primary sources for a no-match result; a high-confidence
+  // known-bad hit remains actionable immediately, even from one provider.
+  const reputationAvailable = corroboratedThreat || activePrimarySources >= 2;
+  const reason = reputationAvailable
+    ? undefined
+    : activePrimarySources === 1
+      ? 'Only one independent threat-intelligence source returned data; a single no-match is insufficient to call reputation clean.'
+      : 'Fewer than two independent primary threat-intelligence sources returned usable evidence.';
   return {
     result: {
-      available: results.some(result => result.available),
+      available: reputationAvailable,
+      ...(reason ? { reason } : {}),
+      activePrimarySources,
+      requiredPrimarySourcesForCleanResult: 2,
       checkedUrl: target.href,
       checkedAt: new Date().toISOString(),
       providers: results.map((result, index) => ({
@@ -639,6 +689,6 @@ export async function checkReputation(
         ...(result.data || {}),
       })),
     },
-    findings: results.flatMap(result => result.findings),
+    findings,
   };
 }
