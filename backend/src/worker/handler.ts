@@ -4,6 +4,7 @@ import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-
 import { assertTransition } from '../core/state.js';
 import { config } from '../core/config.js';
 import { runScan } from '../core/scanner.js';
+import { describeScanFailure } from './errors.js';
 const ddb=DynamoDBDocumentClient.from(new DynamoDBClient({region:config.region}));
 export async function handler(event:SQSEvent):Promise<SQSBatchResponse>{
   const failures:{itemIdentifier:string}[]=[];
@@ -19,9 +20,40 @@ export async function handler(event:SQSEvent):Promise<SQSBatchResponse>{
       const report=await runScan(job.scanId,job.targetUrl,progress);
       await ddb.send(new UpdateCommand({TableName:config.scanTable,Key:{scanId:job.scanId},UpdateExpression:'SET #status=:complete, progress=:progress, stage=:stage, report=:report, updatedAt=:now REMOVE #error',ExpressionAttributeNames:{'#status':'status','#error':'error'},ExpressionAttributeValues:{':complete':'COMPLETED',':progress':100,':stage':'Report ready',':report':report,':now':new Date().toISOString()}}));
     } catch(error) {
-      console.error(JSON.stringify({level:'error',messageId:record.messageId,error:error instanceof Error?error.message:'unknown'}));
-      try { const job=JSON.parse(record.body) as {scanId:string}; const terminal=Number(record.attributes.ApproximateReceiveCount||'1')>=3; const newStatus=terminal?'FAILED':'QUEUED'; await ddb.send(new UpdateCommand({TableName:config.scanTable,Key:{scanId:job.scanId},UpdateExpression:'SET #status=:status, stage=:stage, updatedAt=:now, #error=:error',ExpressionAttributeNames:{'#status':'status','#error':'error'},ExpressionAttributeValues:{':status':newStatus,':stage':terminal?'Scan failed after retries':'Retry queued after worker error',':now':new Date().toISOString(),':error':{code:'SCAN_FAILED',message:terminal?'Evidence collection failed after retries.':'A scan step failed; retrying.'}}})); } catch {}
-      failures.push({itemIdentifier:record.messageId});
+      const failure = describeScanFailure(error);
+      console.error(JSON.stringify({
+        level: 'error',
+        messageId: record.messageId,
+        error: error instanceof Error ? error.message : 'unknown',
+        failureCode: failure.code,
+      }));
+      let failureSaved = false;
+      try {
+        const job = JSON.parse(record.body) as { scanId: string };
+        await ddb.send(new UpdateCommand({
+          TableName: config.scanTable,
+          Key: { scanId: job.scanId },
+          UpdateExpression: 'SET #status=:failed, stage=:stage, updatedAt=:now, #error=:error',
+          ExpressionAttributeNames: { '#status': 'status', '#error': 'error' },
+          ExpressionAttributeValues: {
+            ':failed': 'FAILED',
+            ':stage': failure.stage,
+            ':now': new Date().toISOString(),
+            ':error': { code: failure.code, message: failure.message },
+          },
+        }));
+        failureSaved = true;
+      } catch(persistError) {
+        console.error(JSON.stringify({
+          level: 'error',
+          messageId: record.messageId,
+          error: 'Unable to save terminal scan failure; SQS will retry the message.',
+          details: persistError instanceof Error ? persistError.message : 'unknown',
+        }));
+      }
+      // Acknowledge a failed scan as soon as its FAILED state is persisted.
+      // Only return the message to SQS when DynamoDB itself could not save that state.
+      if (!failureSaved) failures.push({ itemIdentifier: record.messageId });
     }
   }
   return {batchItemFailures:failures};
