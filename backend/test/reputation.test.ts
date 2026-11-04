@@ -33,6 +33,15 @@ test('one clean feed is not enough to mark reputation clean', () => {
   assert.equal(result.activePrimarySources, 1);
 });
 
+test('an unanalysed VirusTotal URL is not counted as a clean source', () => {
+  const result = reputationConsensus([
+    { name: 'Google Safe Browsing', available: true },
+    { name: 'VirusTotal', available: true, countsForConsensus: false },
+  ], []);
+  assert.equal(result.available, false);
+  assert.equal(result.activePrimarySources, 1);
+});
+
 test('two independent clean providers provide reputation coverage', () => {
   const result = reputationConsensus([
     { name: 'Google Safe Browsing', available: true },
