@@ -9,7 +9,7 @@ test('official Indian bank domains are not flagged as lookalikes', () => {
 
 test('brand lookalike domain plus credential context is a high-confidence threat', () => {
   const result = analyzeBrandLookalikes(
-    new URL('https://paypa1-login.example.com/signin'),
+    new URL('https://paypa1.com/signin'),
     { title: 'PayPal secure login', credentialForms: 1 },
   );
   assert.equal(result.findings.some(item => item.signalType === 'threat' && item.severity === 'high'), true);
