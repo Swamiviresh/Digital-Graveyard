@@ -94,7 +94,7 @@ async function readCached(cacheKey: string): Promise<ProviderResult | null> {
 async function writeCached(cacheKey: string, result: ProviderResult, ttlSeconds: number): Promise<void> {
   if (!config.reputationCacheTable || !result.available) return;
   const now = Math.floor(Date.now() / 1000);
-  const expiresAt = now + Math.max(60, Math.min(ttlSeconds, 86400));
+  const expiresAt = now + Math.max(1, Math.min(ttlSeconds, 86400));
   try {
     await ddb.send(new PutCommand({
       TableName: config.reputationCacheTable,
@@ -139,6 +139,7 @@ export class GoogleSafeBrowsingProvider implements ReputationProvider {
   readonly name = 'Google Safe Browsing';
   readonly timeoutMs = 9000;
   async check(url: URL): Promise<ProviderResult> {
+    if (containsSensitiveQuery(url)) return unavailable('Google Safe Browsing lookup was skipped because the URL query may contain a credential or personal identifier.');
     return cached('google-safe-browsing', url.href, 1800, async () => {
       const keys = await getProviderKeys();
       if (!keys.googleSafeBrowsingApiKey) return unavailable('Google Safe Browsing API key is not configured.');
@@ -195,6 +196,12 @@ export class GoogleSafeBrowsingProvider implements ReputationProvider {
   }
 }
 
+export function matchOpenPhishIndicators(exactUrls: Set<string>, hostnames: Set<string>, target: URL): 'exact_url' | 'hostname' | null {
+  if (exactUrls.has(target.href)) return 'exact_url';
+  if (hostnames.has(target.hostname.toLowerCase())) return 'hostname';
+  return null;
+}
+
 export class OpenPhishProvider implements ReputationProvider {
   readonly name = 'OpenPhish Community Feed';
   readonly timeoutMs = 5000;
@@ -232,16 +239,16 @@ export class OpenPhishProvider implements ReputationProvider {
     return cached('openphish', url.href, 6 * 60 * 60, async () => {
       try {
         const feed = await this.getFeed();
-        const exactMatch = feed.exactUrls.has(url.href);
-        const hostnameMatch = !exactMatch && feed.hostnames.has(url.hostname.toLowerCase());
-        if (!exactMatch && !hostnameMatch) {
+        const matchedBy = matchOpenPhishIndicators(feed.exactUrls, feed.hostnames, url);
+        const exactMatch = matchedBy === 'exact_url';
+        const hostnameMatch = matchedBy === 'hostname';
+        if (!matchedBy) {
           return noMatch(this.name, {
             matchedBy: null,
             feedEntryCount: feed.entryCount,
             feedLoadedAt: new Date(feed.loadedAt).toISOString(),
           });
         }
-        const matchedBy = exactMatch ? 'exact_url' : 'hostname';
         return {
           available: true,
           data: {
@@ -275,6 +282,7 @@ export class VirusTotalProvider implements ReputationProvider {
   readonly timeoutMs = 9000;
 
   async check(url: URL): Promise<ProviderResult> {
+    if (containsSensitiveQuery(url)) return unavailable('VirusTotal lookup was skipped because the URL query may contain a credential or personal identifier.');
     return cached('virustotal-url', url.href, 24 * 60 * 60, async () => {
       const keys = await getProviderKeys();
       if (!keys.virusTotalApiKey) return unavailable('VirusTotal API key is not configured.');
@@ -352,6 +360,7 @@ export class UrlhausProvider implements ReputationProvider {
   readonly name = 'URLhaus';
   readonly timeoutMs = 9000;
   async check(url: URL): Promise<ProviderResult> {
+    if (containsSensitiveQuery(url)) return unavailable('URLhaus lookup was skipped because the URL query may contain a credential or personal identifier.');
     return cached('urlhaus', url.href, 12 * 60 * 60, async () => {
       const keys = await getProviderKeys();
       if (!keys.urlhausAuthKey) return unavailable('URLhaus Auth-Key is not configured.');
@@ -395,8 +404,11 @@ function suspiciousPreliminaryEvidence(findings: Finding[]): boolean {
 }
 
 function containsSensitiveQuery(url: URL): boolean {
-  const sensitive = /^(?:token|access_token|refresh_token|auth|authorization|session|sessionid|password|passwd|secret|api_key|apikey|key|code|email|phone|otp|jwt|signature)$/i;
-  return [...url.searchParams.keys()].some(name => sensitive.test(name));
+  const sensitiveName = /token|auth|session|password|passwd|secret|api[_-]?key|^key$|code|email|phone|mobile|otp|jwt|signature|credential/i;
+  if ([...url.searchParams.keys()].some(name => sensitiveName.test(name))) return true;
+  return [...url.searchParams.values()].some(value =>
+    value.includes('@') || /^[A-Za-z0-9_-]{28,}$/.test(value),
+  );
 }
 
 function urlscanMalicious(result: Record<string, unknown>): boolean {
