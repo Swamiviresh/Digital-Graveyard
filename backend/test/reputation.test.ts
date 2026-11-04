@@ -62,3 +62,21 @@ test('one high-confidence known-bad match is actionable immediately', () => {
   ], [finding]);
   assert.equal(result.available, true);
 });
+
+
+import { googleSafeBrowsingThreatTypes, parseGoogleCacheDuration } from '../src/core/reputation.js';
+
+test('Google Safe Browsing v5 keeps only requested phishing and malware threat types', () => {
+  const types = googleSafeBrowsingThreatTypes({
+    threats: [
+      { threatTypes: ['SOCIAL_ENGINEERING'] },
+      { threatTypes: ['MALWARE', 'UNWANTED_SOFTWARE'] },
+    ],
+  });
+  assert.deepEqual(types.sort(), ['MALWARE', 'SOCIAL_ENGINEERING']);
+});
+
+test('Google Safe Browsing v5 parses server cache duration', () => {
+  assert.equal(parseGoogleCacheDuration('3.5s'), 3);
+  assert.equal(parseGoogleCacheDuration('bad-value', 300), 300);
+});
