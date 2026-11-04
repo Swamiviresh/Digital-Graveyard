@@ -438,21 +438,21 @@ async function reserveUrlscanDailyBudget(): Promise<boolean> {
 
 async function getUrlscanResult(uuid: string, apiKey: string): Promise<Record<string, unknown> | null> {
   const endpoint = 'https://urlscan.io/api/v1/result/' + encodeURIComponent(uuid) + '/';
-  for (let attempt = 0; attempt < 4; attempt += 1) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
     const result = await fetchJson(endpoint, { headers: { 'API-Key': apiKey } }, 9000);
     if (result.response.status === 200) return result.body;
     if (result.response.status !== 404) {
       if (result.response.status === 410) return null;
       throw new Error('urlscan.io result endpoint returned HTTP ' + result.response.status + '.');
     }
-    await new Promise(resolve => setTimeout(resolve, attempt === 0 ? 10000 : 8000));
+    await new Promise(resolve => setTimeout(resolve, 5000));
   }
   return null;
 }
 
 export class UrlscanProvider implements ReputationProvider {
   readonly name = 'urlscan.io';
-  readonly timeoutMs = 75000;
+  readonly timeoutMs = 70000;
   async check(url: URL, preliminaryFindings: Finding[]): Promise<ProviderResult> {
     return cached('urlscan', url.href, 24 * 60 * 60, async () => {
       if (!suspiciousPreliminaryEvidence(preliminaryFindings)) {
@@ -483,14 +483,16 @@ export class UrlscanProvider implements ReputationProvider {
       let uuid = '';
       if (recent) {
         uuid = String(recent._id || '');
-        if (uuid) {
-          const details = await fetchJson('https://urlscan.io/api/v1/result/' + encodeURIComponent(uuid) + '/', {
-            headers: { 'API-Key': keys.urlscanApiKey },
-          }, 9000);
-          if (details.response.status === 200) result = details.body;
+        if (!uuid) return unavailable('A recent urlscan.io record was found, but it did not include a result identifier.');
+        const details = await fetchJson('https://urlscan.io/api/v1/result/' + encodeURIComponent(uuid) + '/', {
+          headers: { 'API-Key': keys.urlscanApiKey },
+        }, 9000);
+        if (details.response.status !== 200) {
+          return unavailable('A recent urlscan.io record exists, but its result could not be retrieved. Skipping a duplicate browser scan.');
         }
+        result = details.body;
       }
-      if (!result) {
+      if (!recent) {
         if (!await reserveUrlscanDailyBudget()) return unavailable('The daily private urlscan.io submission safety limit has been reached.');
         source = 'new_private_scan';
         const submitted = await fetchJson('https://urlscan.io/api/v1/scan/', {
