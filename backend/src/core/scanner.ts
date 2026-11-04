@@ -177,7 +177,7 @@ export async function runScan(
     ssl: tls,
     domain,
     http,
-    content,
+    content: contentWithBrandIdentity,
     reputation: reputation.result,
     ai: {
       ...ai,
