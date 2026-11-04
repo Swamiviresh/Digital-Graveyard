@@ -5,6 +5,20 @@ test('TLS analysis reports when HTTPS is unavailable',async()=>{const result=awa
 test('HTTP analysis reports missing security headers and redirect downgrade',()=>{const r=analyzeHttp({url:'http://example.com',status:200,headers:{},body:'',redirects:['https://example.com']},new URL('http://example.com'));assert.equal(r.redirectCount,1);assert.ok(r.findings.some(f=>f.title.includes('downgrade')));});
 test('HTTP analysis recognizes configured headers',()=>{const r=analyzeHttp({url:'https://example.com',status:200,headers:{'strict-transport-security':'max-age=31536000','content-security-policy':'default-src self','x-content-type-options':'nosniff'},body:'',redirects:[]},new URL('https://example.com'));assert.equal(r.findings.length,0);});
 test('content parser finds password forms and lure language without executing scripts',()=>{const r=analyzeContent('<title>Example</title><form><input type="password"></form><p>Verify your account now</p><script>window.x=1</script>','https://example.com');assert.equal(r.credentialForms,1);assert.ok(r.findings.length);assert.equal(r.scriptCount,1);assert.equal(r.inlineScriptCount,1);assert.equal(r.externalScriptCount,0);});
+test('content analyzer flags an explicit intentionally vulnerable scanner-test application',()=>{
+  const html = '<title>Gin & Juice Shop</title><main><p>This is a deliberately vulnerable web application designed for testing web vulnerability scanners. Put your scanner to the test!</p></main>';
+  const r = analyzeContent(html, 'https://example.com/');
+  assert.equal(r.intentionalVulnerabilityDisclosure, true);
+  const finding = r.findings.find(item => item.title === 'Site declares itself an intentionally vulnerable test application');
+  assert.ok(finding);
+  assert.equal(finding?.severity, 'high');
+  assert.equal(finding?.signalType, 'posture');
+  assert.ok((finding?.confidence || 0) >= 0.95);
+});
+test('ordinary security-training mentions do not trigger intentional-vulnerability classification',()=>{
+  const r = analyzeContent('<title>Security Training</title><p>We provide security training and vulnerability scanner evaluation services.</p>', 'https://example.com/');
+  assert.equal(r.intentionalVulnerabilityDisclosure, false);
+});
 test('domain analysis extracts registration age, expiry, and registrar from RDAP fixtures',async()=>{const {summarizeRdap}=await import('../src/core/analyzers.js');const base=Date.parse('2025-01-01T00:00:00Z');const v=summarizeRdap({events:[{eventAction:'registration',eventDate:'2020-01-01T00:00:00Z'},{eventAction:'expiration',eventDate:'2026-01-01T00:00:00Z'}],entities:[{roles:['registrar'],vcardArray:['vcard',[['fn',{},'text','Sample Registrar']]]}]},base);assert.equal(v.registeredAt,'2020-01-01T00:00:00Z');assert.equal(v.expiresAt,'2026-01-01T00:00:00Z');assert.equal(v.registrar,'Sample Registrar');assert.equal(v.domainAgeYears,5);});
 test('content analyzer flags supported brand and off-origin credential evidence conservatively',()=>{const r=analyzeContent('<title>PayPal secure login</title><form action="https://collector.example/login"><input type="password"></form>','https://example.com');assert.ok(r.brandSignals.includes('paypal'));assert.equal(r.externalCredentialForms,1);assert.ok(r.findings.some(f=>f.title==='Possible brand impersonation signal'));assert.ok(r.findings.some(f=>f.title==='Credential form submits to another origin'));
 assert.ok(r.findings.some(f=>f.title==='Multiple phishing-like signals detected'&&f.signalType==='threat'&&f.confidence>=0.85));});
