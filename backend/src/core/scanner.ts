@@ -102,7 +102,8 @@ export async function runScan(
     const providers = Array.isArray(reputation.result.providers)
       ? reputation.result.providers as Array<{ reason?: string }>
       : [];
-    limitations.push(`Reputation check unavailable: ${providers.map(provider => provider.reason).filter(Boolean).join('; ') || 'provider did not return evidence'}`);
+    const reputationReason = typeof reputation.result.reason === 'string' ? reputation.result.reason : '';
+    limitations.push(`Reputation check unavailable: ${reputationReason || providers.map(provider => provider.reason).filter(Boolean).join('; ') || 'provider did not return evidence'}`);
   }
   if (!tls.available) {
     const tlsReason = 'error' in tls && typeof tls.error === 'string' ? tls.error : 'no peer certificate was captured';
