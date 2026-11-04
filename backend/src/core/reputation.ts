@@ -265,6 +265,89 @@ export class OpenPhishProvider implements ReputationProvider {
   }
 }
 
+
+export function encodeVirusTotalUrlId(url: string): string {
+  return Buffer.from(url, 'utf8').toString('base64url').replace(/=+$/, '');
+}
+
+export class VirusTotalProvider implements ReputationProvider {
+  readonly name = 'VirusTotal';
+  readonly timeoutMs = 9000;
+
+  async check(url: URL): Promise<ProviderResult> {
+    return cached('virustotal-url', url.href, 24 * 60 * 60, async () => {
+      const keys = await getProviderKeys();
+      if (!keys.virusTotalApiKey) return unavailable('VirusTotal API key is not configured.');
+      const urlId = encodeVirusTotalUrlId(url.href);
+      const result = await fetchJson('https://www.virustotal.com/api/v3/urls/' + encodeURIComponent(urlId), {
+        headers: { 'x-apikey': keys.virusTotalApiKey },
+      });
+      if (result.response.status === 404) {
+        return unavailable('VirusTotal has no existing analysis for this exact URL.');
+      }
+      if (!result.response.ok) return unavailable('VirusTotal returned HTTP ' + result.response.status + '.');
+      const data = result.body.data && typeof result.body.data === 'object'
+        ? result.body.data as Record<string, unknown>
+        : {};
+      const attributes = data.attributes && typeof data.attributes === 'object'
+        ? data.attributes as Record<string, unknown>
+        : {};
+      const stats = attributes.last_analysis_stats && typeof attributes.last_analysis_stats === 'object'
+        ? attributes.last_analysis_stats as Record<string, unknown>
+        : null;
+      if (!stats) return unavailable('VirusTotal returned no completed URL analysis statistics.');
+      const counts = Object.values(stats).map(value => Number(value)).filter(value => Number.isFinite(value) && value >= 0);
+      const total = counts.reduce((sum, value) => sum + value, 0);
+      if (total <= 0) return unavailable('VirusTotal returned no completed engine results for this URL.');
+      const malicious = Number(stats.malicious || 0);
+      const suspicious = Number(stats.suspicious || 0);
+      const findings: Finding[] = [];
+      if (malicious > 0) {
+        const ratio = malicious / total;
+        const severity = malicious >= 5 || (total >= 20 && ratio >= 0.15)
+          ? 'critical'
+          : malicious >= 2 || (total >= 20 && ratio >= 0.05) ? 'high' : 'medium';
+        const confidence = severity === 'critical' ? 0.97 : severity === 'high' ? 0.9 : 0.75;
+        findings.push(makeFinding(
+          'reputation',
+          severity,
+          'VirusTotal URL analysis reports malicious detections',
+          'VirusTotal reports one or more malicious engine classifications for this exact URL. It is supporting reputation evidence; detection counts and engine coverage matter.',
+          [malicious + ' malicious of ' + total + ' engines; ' + suspicious + ' suspicious', 'URL ID uses the unpadded base64url URL identifier.'],
+          'Review the individual engine results and do not submit sensitive information until the detections are understood.',
+          confidence,
+          'threat',
+        ));
+      } else if (suspicious > 0) {
+        findings.push(makeFinding(
+          'reputation',
+          suspicious >= 5 ? 'medium' : 'low',
+          'VirusTotal URL analysis reports suspicious detections',
+          'VirusTotal reported suspicious classifications for this URL. This is a supporting indicator, not proof that the site is malicious.',
+          [suspicious + ' suspicious of ' + total + ' engines'],
+          'Review provider results and confirm the domain owner before sensitive actions.',
+          0.65,
+          'threat',
+        ));
+      }
+      return {
+        available: true,
+        data: {
+          provider: this.name,
+          matched: malicious > 0 || suspicious > 0,
+          checkedUrl: url.href,
+          urlId,
+          stats,
+          malicious,
+          suspicious,
+          total,
+        },
+        findings,
+      };
+    });
+  }
+}
+
 export class UrlhausProvider implements ReputationProvider {
   readonly name = 'URLhaus';
   readonly timeoutMs = 9000;
