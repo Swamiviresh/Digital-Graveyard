@@ -614,12 +614,10 @@ export function reputationConsensus(
 ): { available: boolean; activePrimarySources: number; reason?: string } {
   const primary = new Set(['Google Safe Browsing', 'OpenPhish Community Feed', 'URLhaus', 'VirusTotal']);
   const activePrimarySources = providers.filter(provider => primary.has(provider.name) && provider.available).length;
-  const corroboratedThreat = findings.some(finding =>
-    finding.signalType === 'threat' &&
-    finding.confidence >= 0.85 &&
-    (finding.severity === 'critical' || finding.severity === 'high'),
+  const providerReportedThreat = findings.some(finding =>
+    finding.category === 'reputation' && finding.signalType === 'threat',
   );
-  const available = corroboratedThreat || activePrimarySources >= 2;
+  const available = providerReportedThreat || activePrimarySources >= 2;
   return {
     available,
     activePrimarySources,
