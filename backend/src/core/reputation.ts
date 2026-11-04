@@ -291,7 +291,12 @@ export class VirusTotalProvider implements ReputationProvider {
         headers: { 'x-apikey': keys.virusTotalApiKey },
       });
       if (result.response.status === 404) {
-        return unavailable('VirusTotal has no existing analysis for this exact URL.');
+        return noMatch(this.name, {
+          checkedUrl: url.href,
+          noAnalysis: true,
+          lookupStatus: 'not_previously_analyzed',
+          cacheTtlSeconds: 6 * 60 * 60,
+        });
       }
       if (!result.response.ok) return unavailable('VirusTotal returned HTTP ' + result.response.status + '.');
       const data = result.body.data && typeof result.body.data === 'object'
@@ -609,11 +614,11 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, providerNa
 }
 
 export function reputationConsensus(
-  providers: Array<{ name: string; available: boolean }>,
+  providers: Array<{ name: string; available: boolean; countsForConsensus?: boolean }>,
   findings: Finding[],
 ): { available: boolean; activePrimarySources: number; reason?: string } {
   const primary = new Set(['Google Safe Browsing', 'OpenPhish Community Feed', 'URLhaus', 'VirusTotal']);
-  const activePrimarySources = providers.filter(provider => primary.has(provider.name) && provider.available).length;
+  const activePrimarySources = providers.filter(provider => primary.has(provider.name) && provider.available && provider.countsForConsensus !== false).length;
   const providerReportedThreat = findings.some(finding =>
     finding.category === 'reputation' && finding.signalType === 'threat',
   );
@@ -649,16 +654,11 @@ export async function checkReputation(
     return unavailable(item.reason instanceof Error ? item.reason.message : providers[index]!.name + ' failed.');
   });
   const findings = results.flatMap(result => result.findings);
-  const primaryProviders = new Set([
-    'Google Safe Browsing',
-    'OpenPhish Community Feed',
-    'URLhaus',
-    'VirusTotal',
-  ]);
   const consensus = reputationConsensus(
     providers.map((provider, index) => ({
       name: provider.name,
       available: results[index]!.available,
+      countsForConsensus: results[index]!.data?.noAnalysis !== true,
     })),
     findings,
   );
