@@ -17,4 +17,8 @@ export const config = {
   geminiSecretArn: process.env.GEMINI_SECRET_ARN || '',
 
   reputationSecretArn: process.env.REPUTATION_SECRET_ARN || '',
+  reputationCacheTable: process.env.REPUTATION_CACHE_TABLE_NAME || '',
+  openPhishFeedBucket: process.env.OPENPHISH_FEED_BUCKET || '',
+  openPhishFeedKey: process.env.OPENPHISH_FEED_KEY || 'feed.txt',
+  enableCertificateTransparency: process.env.ENABLE_CERTIFICATE_TRANSPARENCY === 'true',
 };
