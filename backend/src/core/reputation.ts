@@ -135,61 +135,64 @@ async function fetchJson(url: string, init: RequestInit = {}, timeoutMs = 8000):
   return { response, body };
 }
 
+export function parseGoogleCacheDuration(value: unknown, fallbackSeconds = 300): number {
+  const match = typeof value === 'string' ? /^(\d+(?:\.\d+)?)s$/.exec(value.trim()) : null;
+  if (!match) return fallbackSeconds;
+  const seconds = Number(match[1]);
+  return Number.isFinite(seconds) && seconds > 0 ? Math.max(1, Math.floor(seconds)) : fallbackSeconds;
+}
+
+export function googleSafeBrowsingThreatTypes(body: Record<string, unknown>): string[] {
+  const supported = new Set(['SOCIAL_ENGINEERING', 'MALWARE']);
+  const threats = Array.isArray(body.threats) ? body.threats as Array<Record<string, unknown>> : [];
+  return [...new Set(threats.flatMap(threat =>
+    Array.isArray(threat.threatTypes)
+      ? threat.threatTypes.map(String).filter(type => supported.has(type))
+      : [],
+  ))];
+}
+
 export class GoogleSafeBrowsingProvider implements ReputationProvider {
   readonly name = 'Google Safe Browsing';
   readonly timeoutMs = 9000;
   async check(url: URL): Promise<ProviderResult> {
     if (containsSensitiveQuery(url)) return unavailable('Google Safe Browsing lookup was skipped because the URL query may contain a credential or personal identifier.');
-    return cached('google-safe-browsing', url.href, 1800, async () => {
+    return cached('google-safe-browsing-v5', url.href, 1800, async () => {
       const keys = await getProviderKeys();
       if (!keys.googleSafeBrowsingApiKey) return unavailable('Google Safe Browsing API key is not configured.');
-      const endpoint = new URL('https://safebrowsing.googleapis.com/v4/threatMatches:find');
+      const endpoint = new URL('https://safebrowsing.googleapis.com/v5/urls:search');
       endpoint.searchParams.set('key', keys.googleSafeBrowsingApiKey);
-      const requestBody = {
-        client: { clientId: 'digital-graveyard', clientVersion: '1.0.0' },
-        threatInfo: {
-          threatTypes: ['SOCIAL_ENGINEERING', 'MALWARE'],
-          platformTypes: ['ANY_PLATFORM'],
-          threatEntryTypes: ['URL'],
-          threatEntries: [{ url: url.href }],
-        },
-      };
-      const result = await fetchJson(endpoint.toString(), {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(requestBody),
-      });
-      if (!result.response.ok) return unavailable('Google Safe Browsing returned HTTP ' + result.response.status + '.');
-      const matches = Array.isArray(result.body.matches) ? result.body.matches as Array<Record<string, unknown>> : [];
-      if (!matches.length) {
+      endpoint.searchParams.append('urls', url.href);
+      const result = await fetchJson(endpoint.toString(), { method: 'GET' });
+      if (!result.response.ok) return unavailable('Google Safe Browsing v5 returned HTTP ' + result.response.status + '.');
+      const threatTypes = googleSafeBrowsingThreatTypes(result.body);
+      const cacheTtlSeconds = parseGoogleCacheDuration(result.body.cacheDuration, 300);
+      if (!threatTypes.length) {
         return noMatch(this.name, {
           threatTypesChecked: ['SOCIAL_ENGINEERING', 'MALWARE'],
           checkedUrl: url.href,
           attributionRequired: false,
-          cacheTtlSeconds: 300,
+          cacheTtlSeconds,
+          apiVersion: 'v5',
         });
       }
-      const threatTypes = [...new Set(matches.map(match => String(match.threatType || 'UNKNOWN')))];
-      const cacheTtlSeconds = Math.min(1800, ...matches.map(match => {
-        const seconds = Number.parseFloat(String(match.cacheDuration || ''));
-        return Number.isFinite(seconds) && seconds > 0 ? Math.floor(seconds) : 300;
-      }));
       return {
         available: true,
         data: {
           provider: this.name,
           matched: true,
           threatTypes,
-          matchCount: matches.length,
+          matchCount: threatTypes.length,
           checkedUrl: url.href,
           attributionRequired: true,
           attributionText: 'Advisory provided by Google',
-          advisoryUrl: 'https://developers.google.com/safe-browsing/',
+          advisoryUrl: 'https://developers.google.com/safe-browsing/reference/Appropriate.Usage',
           cacheTtlSeconds,
+          apiVersion: 'v5',
         },
         findings: [knownBadFinding(this.name, url.href, [
           'Matched threat types: ' + threatTypes.join(', '),
-          'Google Safe Browsing Lookup API returned ' + matches.length + ' match(es).',
+          'Google Safe Browsing v5 urls.search matched this URL.',
         ])],
       };
     });
