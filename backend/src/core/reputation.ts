@@ -657,23 +657,16 @@ export async function checkReputation(
     'URLhaus',
     'VirusTotal',
   ]);
-  const activePrimarySources = results.filter((result, index) =>
-    primaryProviders.has(providers[index]!.name) && result.available,
-  ).length;
-  const corroboratedThreat = findings.some(finding =>
-    finding.signalType === 'threat' &&
-    finding.confidence >= 0.85 &&
-    (finding.severity === 'critical' || finding.severity === 'high'),
+  const consensus = reputationConsensus(
+    providers.map((provider, index) => ({
+      name: provider.name,
+      available: results[index]!.available,
+    })),
+    findings,
   );
-  // One clean feed is not enough to label reputation clean. Require two
-  // independent primary sources for a no-match result; a high-confidence
-  // known-bad hit remains actionable immediately, even from one provider.
-  const reputationAvailable = corroboratedThreat || activePrimarySources >= 2;
-  const reason = reputationAvailable
-    ? undefined
-    : activePrimarySources === 1
-      ? 'Only one independent threat-intelligence source returned data; a single no-match is insufficient to call reputation clean.'
-      : 'Fewer than two independent primary threat-intelligence sources returned usable evidence.';
+  const activePrimarySources = consensus.activePrimarySources;
+  const reputationAvailable = consensus.available;
+  const reason = consensus.reason;
   return {
     result: {
       available: reputationAvailable,
