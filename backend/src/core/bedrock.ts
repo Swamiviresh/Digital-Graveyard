@@ -75,6 +75,8 @@ const SYSTEM_INSTRUCTION = [
   'Describe what the website appears to be for in sitePurpose, using cautious wording and only page content that supports the inference. If the purpose is unclear, say that.',
   'In safetyAssessment, explain whether the collected evidence suggests stronger security or suspicious behaviour. Refer to the deterministic security score and evidence coverage. Distinguish malicious indicators from ordinary security-hardening recommendations.',
   'A high score means stronger observed security, not a guarantee that the site is safe. Missing or unavailable checks are unknown, never clean.',
+  'The evidenceCoverage percentage measures only whether the weighted factor families returned usable values. It is not the percentage of pages, routes, or vulnerabilities tested. This scan is passive and limited to the submitted page; do not imply that linked routes or application vulnerabilities were tested.',
+  'If visible page text explicitly says the application is deliberately or intentionally vulnerable and built for vulnerability-scanner testing, state that prominently in concerns and verdict. Do not describe such an application as strongly secure merely because transport, domain, or reputation signals are clean.',
   'Keep sitePurpose to 1–2 concise sentences and safetyAssessment to 2–3 concise sentences. Avoid sensational language.',
   'Do not change, recalculate, or reinterpret the deterministic security score.',
   'Return only valid JSON matching exactly this structure: {"sitePurpose":string,"safetyAssessment":string,"verdict":string,"positives":string[],"concerns":string[],"recommendations":string[],"limitations":string[]}.',
