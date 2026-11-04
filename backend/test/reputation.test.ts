@@ -20,3 +20,36 @@ test('OpenPhish checks exact URL before hostname fallback', () => {
   assert.equal(matchOpenPhishIndicators(exact, hosts, new URL('https://phish.example/other')), 'hostname');
   assert.equal(matchOpenPhishIndicators(exact, hosts, new URL('https://clean.example/')), null);
 });
+
+import { reputationConsensus } from '../src/core/reputation.js';
+import { makeFinding } from '../src/core/scoring.js';
+
+test('one clean feed is not enough to mark reputation clean', () => {
+  const result = reputationConsensus([
+    { name: 'Google Safe Browsing', available: true },
+    { name: 'VirusTotal', available: false },
+  ], []);
+  assert.equal(result.available, false);
+  assert.equal(result.activePrimarySources, 1);
+});
+
+test('two independent clean providers provide reputation coverage', () => {
+  const result = reputationConsensus([
+    { name: 'Google Safe Browsing', available: true },
+    { name: 'VirusTotal', available: true },
+  ], []);
+  assert.equal(result.available, true);
+  assert.equal(result.activePrimarySources, 2);
+});
+
+test('one high-confidence known-bad match is actionable immediately', () => {
+  const finding = makeFinding(
+    'reputation', 'critical', 'Known phishing URL', 'Threat feed match.',
+    ['fixture match'], 'Avoid the URL.', 0.97, 'threat',
+  );
+  const result = reputationConsensus([
+    { name: 'Google Safe Browsing', available: true },
+    { name: 'VirusTotal', available: false },
+  ], [finding]);
+  assert.equal(result.available, true);
+});
