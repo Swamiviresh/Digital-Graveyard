@@ -2,6 +2,7 @@ import { normalizeUrl, ScanInputError } from './url-safety.js';
 import { safeFetch, SafeFetchError } from './safe-fetch.js';
 import type { SafeResponse, TlsEvidence } from './safe-fetch.js';
 import { analyzeContent, analyzeDomain, analyzeHttp, analyzeTls } from './analyzers.js';
+import { analyzeBrandLookalikes } from './lookalikes.js';
 import { checkReputation } from './reputation.js';
 import { calculateFactorStrength, calculateSecurityScore, securityLevelLabel } from './scoring.js';
 import { explainEvidence } from './bedrock.js';
@@ -71,15 +72,27 @@ export async function runScan(
     ? analyzeContent(response.body, response.url)
     : { available: false, reason: 'Target response was not HTML.', findings: [] as Finding[] };
 
+  const brandIdentity = analyzeBrandLookalikes(target, {
+    title: 'title' in content && typeof content.title === 'string' ? content.title : '',
+    visibleTextExcerpt: 'visibleTextExcerpt' in content && typeof content.visibleTextExcerpt === 'string' ? content.visibleTextExcerpt : '',
+    credentialForms: 'credentialForms' in content ? Number(content.credentialForms || 0) : 0,
+    externalCredentialForms: 'externalCredentialForms' in content ? Number(content.externalCredentialForms || 0) : 0,
+  });
+  const contentWithBrandIdentity = {
+    ...content,
+    brandIdentity,
+    findings: [...content.findings, ...brandIdentity.findings],
+  };
+
   await progress('Checking reputation providers', 62);
-  const reputation = await checkReputation(target.hostname);
-  const findings: Finding[] = [
+  const preliminaryFindings: Finding[] = [
     ...(tls.findings || []),
     ...(domain.findings || []),
     ...(http.findings || []),
-    ...(content.findings || []),
-    ...reputation.findings,
+    ...contentWithBrandIdentity.findings,
   ];
+  const reputation = await checkReputation(target, preliminaryFindings);
+  const findings: Finding[] = [...preliminaryFindings, ...reputation.findings];
 
   if (!domain.identityAvailable) {
     limitations.push('RDAP registration identity evidence was unavailable; the registrant or business identity could not be assessed.');
@@ -104,7 +117,7 @@ export async function runScan(
     ssl: tls.available ? calculateFactorStrength(findings.filter(finding => finding.category === 'ssl')) : null,
     domain: domain.identityAvailable && typeof domain.identityStrength === 'number' ? domain.identityStrength : null,
     httpSecurity: http.available ? calculateFactorStrength(findings.filter(finding => finding.category === 'http')) : null,
-    content: content.available ? calculateFactorStrength(findings.filter(finding => finding.category === 'content')) : null,
+    content: content.available ? calculateFactorStrength(contentWithBrandIdentity.findings) : null,
     reputation: reputation.result.available ? calculateFactorStrength(findings.filter(finding => finding.category === 'reputation')) : null,
   };
 
@@ -114,7 +127,7 @@ export async function runScan(
     ssl: tls,
     domain,
     http,
-    content,
+    content: contentWithBrandIdentity,
     reputation: reputation.result,
     findings,
     factors,
