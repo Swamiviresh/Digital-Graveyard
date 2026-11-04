@@ -77,7 +77,7 @@ export function analyzeBrandLookalikes(
   const brandInPage = Boolean(matchedBrand && titleMention);
   let confidence = 0;
   if (matchedBrand && (domainLookalike || brandInSubdomain)) {
-    confidence = domainLookalike && (hasCredentials || brandInPage) ? 0.93 : 0.82;
+    confidence = (domainLookalike || brandInSubdomain) && (hasCredentials || brandInPage) ? 0.93 : 0.82;
     matchTypes.push(domainLookalike ? 'registrable-domain edit distance ' + bestDistance : 'brand token in a non-official subdomain');
     if (brandInPage) matchTypes.push('brand name in page title or visible text');
     if (hasCredentials) matchTypes.push('password form present');
