@@ -32,7 +32,8 @@ export function analyzeBrandLookalikes(
   const registrableDomain = parsed.domain || null;
   const rootLabel = normalizeLabel(parsed.domainWithoutSuffix || '');
   const subdomains = (parsed.subdomain || '').split('.').filter(Boolean);
-  const path = decodeURIComponent(url.pathname).toLowerCase();
+  let path = url.pathname.toLowerCase();
+  try { path = decodeURIComponent(path); } catch { /* keep the encoded path */ }
   const title = (page.title || '').toLowerCase();
   const visible = (page.visibleTextExcerpt || '').toLowerCase();
   const hasCredentials = Number(page.credentialForms || 0) > 0;
@@ -90,17 +91,19 @@ export function analyzeBrandLookalikes(
   }
 
   const findings: Finding[] = [];
-  if (matchedBrand && confidence >= 0.8) {
+  if (matchedBrand && confidence >= 0.7) {
+    const hostBasedMatch = domainLookalike || brandInSubdomain;
     const corroborated = hasCredentials || brandInPage;
+    const highConfidenceThreat = hostBasedMatch && corroborated && confidence >= 0.85;
     findings.push(makeFinding(
       'content',
-      corroborated ? 'high' : 'medium',
-      corroborated ? 'Possible brand impersonation with credential context' : 'Possible brand lookalike hostname',
-      'The hostname or URL path resembles a known brand but is not one of the maintained official domains. This is a heuristic signal and requires review; it is not proof of phishing.',
+      highConfidenceThreat ? 'high' : 'medium',
+      highConfidenceThreat ? 'Possible brand impersonation with credential context' : 'Possible brand reference on a non-official hostname or path',
+      'The hostname or URL path resembles or references a known brand but is not one of the maintained official domains. A path-only mention is weak context; a close hostname match combined with credential collection is substantially more concerning.',
       ['Brand: ' + matchedBrand.displayName, 'Hostname: ' + hostname, ...matchTypes, 'Official domains checked: ' + matchedBrand.domains.join(', ')],
       'Verify the exact registrable domain against the brand’s official website before entering credentials or payment information.',
       confidence,
-      corroborated ? 'threat' : 'context',
+      highConfidenceThreat ? 'threat' : 'context',
     ));
   }
   if (punycode) {
