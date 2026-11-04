@@ -389,3 +389,12 @@ Outputs:
 
   QueueUrl:
     Value: !Ref ScanQueue
+
+  ReputationCacheTableName:
+    Value: !Ref ReputationCacheTable
+
+  OpenPhishFeedBucketName:
+    Value: !Ref OpenPhishFeedBucket
+
+  OpenPhishFeedUpdaterFunctionName:
+    Value: !Ref OpenPhishFeedUpdaterFunction
