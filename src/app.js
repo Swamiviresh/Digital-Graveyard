@@ -377,6 +377,7 @@ function compactEvidenceSummary(key, data) {
     return providers.map(provider => {
       if (!provider || provider.available === false) return `${provider?.name || 'Provider'} unavailable: ${provider?.reason || 'no result'}`;
       if (provider.matched === true) {
+        if (provider.name === 'VirusTotal' && provider.noAnalysis === true) return 'VirusTotal: no prior analysis for this exact URL (cached lookup)';
         if (provider.name === 'VirusTotal') return `VirusTotal: ${Number(provider.malicious || 0)} malicious · ${Number(provider.suspicious || 0)} suspicious of ${Number(provider.total || 0)} engines`;
         if (provider.name === 'Google Safe Browsing') return `Google Safe Browsing: MATCH · ${Array.isArray(provider.threatTypes) ? provider.threatTypes.join(', ') : 'unsafe URL'}`;
         if (provider.name === 'OpenPhish Community Feed') return `OpenPhish: MATCH · ${String(provider.matchedBy || 'feed indicator')}`;
