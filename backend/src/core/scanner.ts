@@ -150,7 +150,7 @@ export async function runScan(
   const levelLabel = securityLevelLabel(score.securityLevel);
   const summary = score.securityScore === null
     ? `A security score could not be calculated because no weighted evidence checks returned usable data. Weighted check availability: ${score.evidenceCoverage}%.`
-    : `Security score ${score.securityScore}/100 — ${levelLabel}. Evidence coverage: ${score.evidenceCoverage}%. ${findings.length} observations were recorded; unavailable checks are listed separately.`;
+    : `Security score ${score.securityScore}/100 — ${levelLabel}. Weighted check availability: ${score.evidenceCoverage}%. ${findings.length} observations were recorded; unavailable checks are listed separately.`;
 
   return {
     scanId,
