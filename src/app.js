@@ -422,12 +422,12 @@ function renderLiveReport(report) {
   const sections=[...document.querySelectorAll('main section')];
   const identity=sections[0], factorsSection=sections[1], verdictSection=sections[2], evidenceSection=sections[3], finalSection=sections[4];
   const host=new URL(report.targetUrl).hostname;
-  const ai=report.ai || {available:false,sitePurpose:'AI website summary is unavailable for this report.',safetyAssessment:'No AI safety assessment was returned. Review the deterministic score, findings and evidence coverage.',verdict:'AI explanation unavailable.',positives:[],concerns:[],recommendations:[],limitations:[]};
+  const ai=report.ai || {available:false,sitePurpose:'AI website summary is unavailable for this report.',safetyAssessment:'No AI safety assessment was returned. Review the deterministic score, findings and weighted check availability; linked routes and application vulnerabilities are not tested.',verdict:'AI explanation unavailable.',positives:[],concerns:[],recommendations:[],limitations:[]};
   const security=resolveSecurityPresentation(report);
   const h1=identity?.querySelector('h1'); if(h1) h1.textContent=host;
   const siteLink=document.getElementById('report-site-link'); if(siteLink){siteLink.href=report.targetUrl;siteLink.textContent=report.targetUrl;}
   const time=document.getElementById('report-scan-timestamp'); if(time) time.textContent=`${new Date(report.scannedAt).toLocaleString()} · LIVE`;
-  const notice=document.querySelector('#report-demo-notice > div'); if(notice) notice.textContent=`LIVE REPORT · Evidence-based security results for ${host}. Unavailable checks are shown separately.`;
+  const notice=document.querySelector('#report-demo-notice > div'); if(notice) notice.textContent=`LIVE REPORT · Passive assessment of the submitted page for ${host}. Linked routes and active application vulnerabilities are not tested.`;
 
   const score=document.querySelector('.dg-score-value');
   if(score) score.textContent=security.score === null ? '—' : String(security.score);
@@ -471,7 +471,7 @@ function renderLiveReport(report) {
   }
   if(coverageNote){
     const coverage=Number.isFinite(report.evidenceCoverage) ? Math.max(0,Math.min(100,Math.round(report.evidenceCoverage))) : null;
-    coverageNote.textContent=coverage === null ? 'EVIDENCE COVERAGE NOT PROVIDED' : `EVIDENCE COVERAGE · ${coverage}%${coverage < 100 ? ' · SOME CHECKS UNAVAILABLE' : ''}`;
+    coverageNote.textContent=coverage === null ? 'WEIGHTED CHECK AVAILABILITY NOT PROVIDED' : `WEIGHTED CHECK AVAILABILITY · ${coverage}%${coverage < 100 ? ' · SOME CHECKS UNAVAILABLE' : ' · NOT PAGE OR VULNERABILITY COVERAGE'}`;
   }
 
   const securityBadge=identity&&[...identity.querySelectorAll('span')].find(n=>/LOW RISK|MODERATE RISK|HIGH RISK|CRITICAL RISK|UNKNOWN RISK|STRONG SECURITY|GOOD SECURITY|MODERATE SECURITY|INSUFFICIENT DATA/i.test(n.textContent||''));
