@@ -492,26 +492,6 @@ function renderLiveReport(report) {
       if(detail) detail.insertAdjacentElement('afterend',attribution);
     }
   }
-  const reputationRow=[...document.querySelectorAll('main section:nth-of-type(2) > div:nth-child(2) > div')].find(row=>row.querySelector('.font-title-md')?.textContent?.includes('Reputation Intelligence'));
-  if(reputationRow){
-    reputationRow.querySelector('.dg-google-sb-attribution')?.remove();
-    const googleMatch=Array.isArray(report.reputation?.providers) && report.reputation.providers.some(provider=>provider?.name==='Google Safe Browsing' && provider?.matched===true);
-    if(googleMatch){
-      const attribution=document.createElement('p');
-      attribution.className='dg-google-sb-attribution mt-2 text-xs leading-relaxed text-amber-200';
-      attribution.append('Advisory provided by Google. Google cannot guarantee that its information is comprehensive or error-free. ');
-      const link=document.createElement('a');
-      link.href='https://developers.google.com/safe-browsing/';
-      link.textContent='Google Safe Browsing Advisory';
-      link.target='_blank';
-      link.rel='noopener noreferrer';
-      link.className='underline underline-offset-2';
-      attribution.appendChild(link);
-      const detail=reputationRow.querySelector('.font-body-sm');
-      if(detail) detail.insertAdjacentElement('afterend',attribution);
-    }
-  }
-
   const securityBadge=identity&&[...identity.querySelectorAll('span')].find(n=>/LOW RISK|MODERATE RISK|HIGH RISK|CRITICAL RISK|UNKNOWN RISK|STRONG SECURITY|GOOD SECURITY|MODERATE SECURITY|INSUFFICIENT DATA/i.test(n.textContent||''));
   if(securityBadge){
     securityBadge.textContent=security.label;
