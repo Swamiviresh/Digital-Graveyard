@@ -334,7 +334,29 @@ export function analyzeContent(html: string, baseUrl: string) {
   };
   walk(doc);
   const text = texts.join(' ').replace(/\s+/g,' ').slice(0, config.maxHtmlChars).toLowerCase();
+  const visibleText = visibleTexts.join(' ').replace(/\s+/g, ' ').slice(0, config.maxHtmlChars).toLowerCase();
   const findings: Finding[]=[];
+
+  // Treat an application's own explicit declaration that it is deliberately
+  // vulnerable as direct posture evidence. This is not a malware verdict.
+  const intentionalVulnerabilityDisclosure =
+    /\b(?:deliberately|intentionally)\s+vulnerable\s+(?:web\s+)?application\b/i.test(visibleText) &&
+    /\b(?:vulnerability\s+scanners?|scanner\s+evaluation|security\s+testing)\b/i.test(visibleText);
+  if (intentionalVulnerabilityDisclosure) {
+    findings.push(makeFinding(
+      'content',
+      'high',
+      'Site declares itself an intentionally vulnerable test application',
+      'Visible page text explicitly describes this application as deliberately vulnerable and intended for vulnerability-scanner testing. This is a strong application-security warning, not evidence that the domain is malicious.',
+      [
+        'Visible page text declares the application deliberately vulnerable.',
+        'Visible page text identifies vulnerability-scanner testing as its purpose.',
+      ],
+      'Treat this host as a controlled training target only. Do not use real credentials or payment details, and review its published vulnerability inventory before considering production use.',
+      0.98,
+      'posture',
+    ));
+  }
   const credentialForms=forms.filter(f=>f.passwordFields>0);
   const pageTitle=(html.match(/<title[^>]*>([^<]*)/i)?.[1]||'').slice(0,200);
   const targetHost=new URL(baseUrl).hostname.toLowerCase();
@@ -393,5 +415,5 @@ export function analyzeContent(html: string, baseUrl: string) {
   }
   if(downloads.length)findings.push(makeFinding('content','low','Executable or archive download links found','The page links to file types that can carry executable or archived content. No files were downloaded.',downloads.slice(0,5),'Verify download links are expected and clearly identified.',0.35,'context'));
   const visibleTextExcerpt = visibleTexts.join(' ').replace(/\s+/g, ' ').trim().slice(0, 1600);
-  return { available:true, title:pageTitle, metaDescription, headings:[...new Set(headings)].slice(0, 12), visibleTextExcerpt, brandSignals, externalCredentialForms:externalCredentialForms.length, forms:forms.length, credentialForms:credentialForms.length, scriptCount:scripts.length+inlineScripts.length, inlineScriptCount:inlineScripts.length, externalScriptCount:scripts.length, obfuscationPattern:obfuscated, suspiciousDownloads:downloads.slice(0,10), misleadingLinks:misleading.slice(0,10), scripts:scripts.slice(0,30), externalResourceOrigins:[...new Set(externalResources)].slice(0,40), linkCount:links.length, suspiciousTerms:matched, truncated:html.length>config.maxHtmlChars, findings };
+  return { available:true, title:pageTitle, metaDescription, headings:[...new Set(headings)].slice(0, 12), visibleTextExcerpt, intentionalVulnerabilityDisclosure, brandSignals, externalCredentialForms:externalCredentialForms.length, forms:forms.length, credentialForms:credentialForms.length, scriptCount:scripts.length+inlineScripts.length, inlineScriptCount:inlineScripts.length, externalScriptCount:scripts.length, obfuscationPattern:obfuscated, suspiciousDownloads:downloads.slice(0,10), misleadingLinks:misleading.slice(0,10), scripts:scripts.slice(0,30), externalResourceOrigins:[...new Set(externalResources)].slice(0,40), linkCount:links.length, suspiciousTerms:matched, truncated:html.length>config.maxHtmlChars, findings };
 }
