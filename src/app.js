@@ -376,11 +376,17 @@ function compactEvidenceSummary(key, data) {
     if (!providers.length) return 'No reputation providers returned evidence.';
     return providers.map(provider => {
       if (!provider || provider.available === false) return `${provider?.name || 'Provider'} unavailable: ${provider?.reason || 'no result'}`;
-      const stats = provider.stats && typeof provider.stats === 'object' ? provider.stats : {};
-      const malicious = Number(provider.malicious ?? stats.malicious ?? 0);
-      const suspicious = Number(provider.suspicious ?? stats.suspicious ?? 0);
-      const total = Number(provider.total ?? Object.values(stats).reduce((a, b) => a + Number(b || 0), 0));
-      return `${provider.name || 'Provider'}: ${malicious} malicious · ${suspicious} suspicious · ${total} engines`;
+      if (provider.matched === true) {
+        if (provider.name === 'VirusTotal') return `VirusTotal: ${Number(provider.malicious || 0)} malicious · ${Number(provider.suspicious || 0)} suspicious of ${Number(provider.total || 0)} engines`;
+        if (provider.name === 'Google Safe Browsing') return `Google Safe Browsing: MATCH · ${Array.isArray(provider.threatTypes) ? provider.threatTypes.join(', ') : 'unsafe URL'}`;
+        if (provider.name === 'OpenPhish Community Feed') return `OpenPhish: MATCH · ${String(provider.matchedBy || 'feed indicator')}`;
+        if (provider.name === 'URLhaus') return `URLhaus: MALWARE URL MATCH · ${String(provider.threat || 'malware distribution')}`;
+        if (provider.name === 'urlscan.io') return `urlscan.io: MALICIOUS BROWSER VERDICT · ${String(provider.source || 'scan result')}`;
+        return `${String(provider.name || 'Provider')}: known-bad match`;
+      }
+      if (provider.name === 'VirusTotal') return `VirusTotal: 0 malicious · ${Number(provider.suspicious || 0)} suspicious of ${Number(provider.total || 0)} engines`;
+      if (provider.name === 'urlscan.io' && provider.source === 'existing_scan') return 'urlscan.io: existing browser scan reviewed · no malicious verdict';
+      return `${String(provider.name || 'Provider')}: no match in available data`;
     }).join(' · ');
   }
 
