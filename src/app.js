@@ -241,6 +241,7 @@ function setLiveProgress(progress, stage, currentStage, ui) {
 
 async function submitLiveScan(target, ui) {
   ui.inputContainer?.classList.add('hidden'); ui.chamber?.classList.remove('hidden');
+  if(ui.heading) ui.heading.innerHTML='Analyzing <span class="italic text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-fixed to-tertiary">Digital Footprint...</span>';
   if(ui.eyebrow) ui.eyebrow.textContent='LIVE SCAN QUEUED';
   if(ui.description) ui.description.textContent='The backend is collecting evidence. Progress updates come from the scan worker.';
   if(ui.activeTarget) ui.activeTarget.textContent=target.href;
@@ -249,7 +250,10 @@ async function submitLiveScan(target, ui) {
   if(!response.ok) throw new Error(created?.error?.message||`Unable to queue scan (${response.status}).`);
   sessionStorage.setItem('dg-current-scan',JSON.stringify({url:target.href,hostname:target.hostname,submittedAt:new Date().toISOString(),mode:'live',scanId:created.scanId}));
   let lastStage='';
-  for(let attempt=0;attempt<600;attempt++) {
+  // Do not leave the visitor staring at an endless radar if a worker or queue stalls.
+  // Three minutes allows the 120-second worker timeout plus status-polling overhead.
+  const pollingDeadline = Date.now() + 180000;
+  while(Date.now() < pollingDeadline) {
     const statusResponse=await fetch(`${API_BASE_URL}/api/scans/${encodeURIComponent(created.scanId)}`,{cache:'no-store',signal:AbortSignal.timeout(15000)});
     const status=await statusResponse.json();
     if(!statusResponse.ok) throw new Error(status?.error?.message||`Unable to read scan status (${statusResponse.status}).`);
@@ -262,7 +266,7 @@ async function submitLiveScan(target, ui) {
     if(status.status==='FAILED') throw new Error(status.error?.message||'The scan failed. Try again later.');
     await new Promise(resolve=>window.setTimeout(resolve,1500));
   }
-  throw new Error('The scan is taking longer than expected. You can reopen its report later using scan ID '+created.scanId+'.');
+  throw new Error('This scan did not finish within three minutes. The website may be responding slowly or blocking automated requests. Please check the URL or try a different website.');
 }
 
 function initScanner() {
@@ -287,8 +291,12 @@ function initScanner() {
       if(API_BASE_URL&&!demoRequested) await submitLiveScan(target,ui);
       else await runDemoSequence(target,ui);
     } catch(error) {
-      ui.chamber?.classList.add('hidden'); ui.inputContainer?.classList.remove('hidden');
-      showInlineError(error instanceof Error?error.message:'Unable to start the scan.');
+      ui.chamber?.classList.add('hidden');
+      ui.inputContainer?.classList.remove('hidden');
+      if(ui.eyebrow) ui.eyebrow.textContent='SCAN COULD NOT BE COMPLETED';
+      if(ui.description) ui.description.textContent='We could not finish investigating this website. Check the address or enter a different URL to try again.';
+      showInlineError(error instanceof Error ? error.message : 'The scan could not be completed. Please try a different website.');
+      input?.focus();
     }
   });
 }
