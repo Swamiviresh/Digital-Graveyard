@@ -13,7 +13,9 @@ export async function runScan(
   progress: (stage: string, value: number) => Promise<void>,
 ): Promise<ScanReport> {
   const target = normalizeUrl(targetUrl);
-  const limitations: string[] = [];
+  const limitations: string[] = [
+    'Scope limitation: this is a passive assessment of the submitted page and available domain, TLS, HTTP, and reputation signals. Linked routes, authenticated areas, client-side execution, and active application vulnerability tests are not assessed.',
+  ];
 
   await progress('Resolving public target', 8);
   let response: Awaited<ReturnType<typeof safeFetch>>;
@@ -147,7 +149,7 @@ export async function runScan(
     .map(([key]) => `${key} checks showed strong security signals.`);
   const levelLabel = securityLevelLabel(score.securityLevel);
   const summary = score.securityScore === null
-    ? `A security score could not be calculated because no weighted evidence checks returned usable data. Evidence coverage: ${score.evidenceCoverage}%.`
+    ? `A security score could not be calculated because no weighted evidence checks returned usable data. Weighted check availability: ${score.evidenceCoverage}%.`
     : `Security score ${score.securityScore}/100 — ${levelLabel}. Evidence coverage: ${score.evidenceCoverage}%. ${findings.length} observations were recorded; unavailable checks are listed separately.`;
 
   return {
